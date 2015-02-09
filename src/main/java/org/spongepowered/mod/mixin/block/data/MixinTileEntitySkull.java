@@ -39,6 +39,8 @@ import org.spongepowered.mod.SpongeMod;
 
 import com.google.common.base.Optional;
 
+import java.util.Arrays;
+
 @NonnullByDefault
 @Implements(@Interface(iface = Skull.class, prefix = "skull$"))
 @Mixin(net.minecraft.tileentity.TileEntitySkull.class)
@@ -60,11 +62,11 @@ public abstract class MixinTileEntitySkull extends TileEntity {
     private int skullRotation;
 
     public Direction skull$getRotation() {
-    return null; //TODO
+        return Direction.values()[this.skullRotation];
     }
 
     public void skull$setRotation(Direction rotation) {
-        //TODO
+        this.skullRotation = Arrays.asList(Direction.values()).indexOf(rotation);
     }
 
     public Optional<GameProfile> skull$getPlayer() {
