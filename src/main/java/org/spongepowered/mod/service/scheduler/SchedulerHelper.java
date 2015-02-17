@@ -24,6 +24,7 @@
  */
 package org.spongepowered.mod.service.scheduler;
 
+
 import com.google.common.base.Optional;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.scheduler.Task;
@@ -52,8 +53,12 @@ public class SchedulerHelper {
 
     protected Optional<Task> utilityForAddingTask(Map<UUID, ScheduledTask> taskMap, ScheduledTask task) {
         Optional<Task> resultTask = Optional.absent();
-        taskMap.put(task.getUniqueId(), task);
-        resultTask = Optional.of((Task) task);
+        if ( task == null ) {
+            SpongeMod.instance.getLogger().warn(SchedulerLogMessages.CANNOT_MAKE_TASK_WARNING);
+        } else {
+            taskMap.put(task.getUniqueId(), task);
+            resultTask = Optional.of((Task) task);
+        }
         return resultTask;
     }
 
@@ -127,20 +132,21 @@ public class SchedulerHelper {
         // else return a Collection of Tasks.
 
         PluginContainer testedOwner = (PluginContainer) plugin;
-        String testOwnerID = testedOwner.getId();
+        String testOwnerId = testedOwner.getId();
         Collection<Task> subsetCollection;
 
         synchronized (taskMap) {
             subsetCollection = new ArrayList<Task>(taskMap.values());
         }
 
-        Iterator<Task> it = subsetCollection.iterator();
+        Iterator<Task> itr = subsetCollection.iterator();
 
-        while (it.hasNext()) {
-            String pluginId = ((PluginContainer) it.next()).getId();
+        // TODO JDK8 will replace code like this with lambdas.
+        while (itr.hasNext()) {
+            String pluginId = itr.next().getOwner().getId();
 
-            if (!testOwnerID.equals(pluginId)) {
-                it.remove();
+            if (!testOwnerId.equals(pluginId)) {
+                itr.remove();
             }
         }
 
@@ -153,14 +159,14 @@ public class SchedulerHelper {
      * @return The Optional&lt;UUID&gt; result from the search by name.
      */
     protected Optional<UUID> getUuidOfTaskByName(Map<UUID, ScheduledTask> taskMap, String name) {
-        Optional<UUID> resultUUID = Optional.absent();
+        Optional<UUID> resultUuid = Optional.absent();
 
         for (ScheduledTask t : taskMap.values()) {
             if (name.equals(t.name)) {
                 return Optional.of(t.id);
             }
         }
-        return resultUUID;
+        return resultUuid;
 
     }
 
@@ -184,13 +190,14 @@ public class SchedulerHelper {
             subsetCollection = new ArrayList<Task>(taskMap.values());
         }
 
-        Iterator<Task> it = subsetCollection.iterator();
+        Iterator<Task> itr = subsetCollection.iterator();
 
-        while (it.hasNext()) {
-            String taskName = ((PluginContainer) it.next()).getName();
+        // TODO JDK8 will replace code like this with lambdas.
+        while (itr.hasNext()) {
+            String taskName = itr.next().getOwner().getName();
             Matcher matcher = searchPattern.matcher(taskName);
             if (!matcher.matches()) {
-                it.remove();
+                itr.remove();
             }
         }
 

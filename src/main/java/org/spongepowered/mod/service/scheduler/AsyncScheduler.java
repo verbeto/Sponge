@@ -24,6 +24,7 @@
  */
 package org.spongepowered.mod.service.scheduler;
 
+
 import com.google.common.base.Optional;
 import org.spongepowered.api.service.scheduler.AsynchronousScheduler;
 import org.spongepowered.api.service.scheduler.Task;
@@ -177,9 +178,8 @@ public class AsyncScheduler implements AsynchronousScheduler {
             } catch (InterruptedException e) {
                 // The taskMap has been modified; there is work to do.
                 // Continue on without handling the Exception.
-            } catch (IllegalMonitorStateException e) {
-                SpongeMod.instance.getLogger().error(SchedulerLogMessages.CATASTROPHIC_ERROR_IN_SCHEDULER_SEEK_HELP);
-                SpongeMod.instance.getLogger().error(e.toString());
+            } catch (IllegalMonitorStateException ex) {
+                SpongeMod.instance.getLogger().error(SchedulerLogMessages.CATASTROPHIC_ERROR_IN_SCHEDULER_SEEK_HELP, ex);
             }
 
             // We've locked down the taskMap but the lock is short lived if the size of the
@@ -246,9 +246,10 @@ public class AsyncScheduler implements AsynchronousScheduler {
     }
 
     private Optional<Task> utilityForAddingAsyncTask(ScheduledTask task) {
-        Optional<Task> resultTask = Optional.absent();
 
+        Optional<Task> resultTask = Optional.absent();
         task.setTimestamp(System.currentTimeMillis());
+
         this.lock.lock();
         try {
             this.taskMap.put(task.getUniqueId(), task);
@@ -286,22 +287,16 @@ public class AsyncScheduler implements AsynchronousScheduler {
      */
     @Override
     public Optional<Task> runTask(Object plugin, Runnable runnableTarget) {
-        //
+
         // The intent of this method is to run a single task (non-repeating) and has zero
         // offset (doesn't wait a delay before starting), and a zero period (no repetition)</p>
-        Optional<Task> resultTask = Optional.absent();
-        final long NODELAY = 0L;
-        final long NOPERIOD = 0L;
 
-        ScheduledTask nonRepeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, NODELAY, NOPERIOD);
+        final long noDelay = 0L;
+        final long noPeriod = 0L;
 
-        if (nonRepeatingTask == null) {
-            SpongeMod.instance.getLogger().warn(SchedulerLogMessages.CANNOT_MAKE_TASK_WARNING);
-        } else {
-            resultTask = utilityForAddingAsyncTask(nonRepeatingTask);
-        }
+        ScheduledTask nonRepeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, noDelay, noPeriod);
 
-        return resultTask;
+        return utilityForAddingAsyncTask(nonRepeatingTask);
     }
 
     /**
@@ -344,22 +339,16 @@ public class AsyncScheduler implements AsynchronousScheduler {
      */
     @Override
     public Optional<Task> runTaskAfter(Object plugin, Runnable runnableTarget, TimeUnit scale, long delay) {
-        Optional<Task> resultTask = Optional.absent();
-        final long NOPERIOD = 0L;
 
         // The delay passed to this method is converted to the number of milliseconds
         // per the scale of the time unit.
+
+        final long noPeriod = 0L;
         delay = scale.toMillis(delay);
 
-        ScheduledTask nonRepeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, delay, NOPERIOD);
+        ScheduledTask nonRepeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, delay, noPeriod);
 
-        if (nonRepeatingTask == null) {
-            SpongeMod.instance.getLogger().warn(SchedulerLogMessages.CANNOT_MAKE_TASK_WARNING);
-        } else {
-            resultTask = utilityForAddingAsyncTask(nonRepeatingTask);
-        }
-
-        return resultTask;
+        return utilityForAddingAsyncTask(nonRepeatingTask);
     }
 
     /**
@@ -420,21 +409,16 @@ public class AsyncScheduler implements AsynchronousScheduler {
      */
     @Override
     public Optional<Task> runRepeatingTask(Object plugin, Runnable runnableTarget, TimeUnit scale, long interval) {
-        Optional<Task> resultTask = Optional.absent();
-        final long NODELAY = 0L;
 
         // The interval passed to this method is converted to the number of milliseconds
         // per the scale of the time unit.
+
+        final long noDelay = 0L;
         interval = scale.toMillis(interval);
-        ScheduledTask repeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, NODELAY, interval);
 
-        if (repeatingTask == null) {
-            SpongeMod.instance.getLogger().warn(SchedulerLogMessages.CANNOT_MAKE_TASK_WARNING);
-        } else {
-            resultTask = utilityForAddingAsyncTask(repeatingTask);
-        }
+        ScheduledTask repeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, noDelay, interval);
 
-        return resultTask;
+        return utilityForAddingAsyncTask(repeatingTask);
     }
 
     /**
@@ -501,28 +485,23 @@ public class AsyncScheduler implements AsynchronousScheduler {
      *
      * @param plugin The plugin container of the Plugin that initiated the Task
      * @param runnableTarget  The Runnable object that implements a run() method to execute the Task desired
-     * @param scale
+     * @param scale  Which timescale used for the interval and delay parameters.
      * @param delay  The offset in time unit scale before running the task.
      * @param interval The offset in time unit scale before running the task.
      * @return Optional&lt;Task&gt; Either Optional.absent() if invalid or a reference to the new Task
      */
     @Override
     public Optional<Task> runRepeatingTaskAfter(Object plugin, Runnable runnableTarget, TimeUnit scale, long interval, long delay) {
-        Optional<Task> resultTask = Optional.absent();
 
         // The interval and delay passed to this method is converted to the number of milliseconds
         // per the scale of the time unit.
+
         interval = scale.toMillis(interval);
         delay = scale.toMillis(delay);
+
         ScheduledTask repeatingTask = this.schedulerHelper.taskValidationStep(plugin, runnableTarget, delay, interval);
 
-        if (repeatingTask == null) {
-            SpongeMod.instance.getLogger().warn(SchedulerLogMessages.CANNOT_MAKE_TASK_WARNING);
-        } else {
-            resultTask = utilityForAddingAsyncTask(repeatingTask);
-        }
-
-        return resultTask;
+        return utilityForAddingAsyncTask(repeatingTask);
     }
 
     /**
@@ -545,8 +524,8 @@ public class AsyncScheduler implements AsynchronousScheduler {
      */
     @Override
     public Optional<Task> getTaskById(UUID id) {
-        Optional<Task> resultTask = Optional.absent();
 
+        Optional<Task> resultTask = Optional.absent();
         Task tmpTask = this.taskMap.get(id);
 
         if (tmpTask != null) {
@@ -582,8 +561,7 @@ public class AsyncScheduler implements AsynchronousScheduler {
         try {
             this.executor.submit(task.runnableBody);
         } catch (Exception ex) {
-            SpongeMod.instance.getLogger().error(SchedulerLogMessages.USER_TASK_FAILED_TO_RUN_ERROR);
-            SpongeMod.instance.getLogger().error(ex.toString());
+            SpongeMod.instance.getLogger().error(SchedulerLogMessages.USER_TASK_FAILED_TO_RUN_ERROR, ex);
             bRes = false;
 
         }
