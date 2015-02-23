@@ -54,6 +54,7 @@ import org.spongepowered.mod.SpongeMod;
 import org.spongepowered.mod.event.EventRegistry;
 import org.spongepowered.mod.event.SpongeEventBus;
 import org.spongepowered.mod.guice.SpongePluginGuiceModule;
+import org.spongepowered.mod.mixin.plugin.timings.CustomTimingsHandler;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -74,6 +75,7 @@ public class SpongePluginContainer implements ModContainer, PluginContainer {
     private boolean enabled = true;
     private EventBus fmlEventBus;
     private LoadController fmlController;
+    public static final CustomTimingsHandler pluginParentTimer = new CustomTimingsHandler("** Plugins");
 
     private Multimap<Class<? extends Event>, Method> stateEventHandlers = ArrayListMultimap.create();
 
@@ -119,7 +121,12 @@ public class SpongePluginContainer implements ModContainer, PluginContainer {
         if (this.stateEventHandlers.containsKey(spongeEvent)) {
             try {
                 for (Method m : this.stateEventHandlers.get(spongeEvent)) {
+                    final CustomTimingsHandler timings =
+                            new CustomTimingsHandler("Plugin: " + this.getModId() + " Event: " + getMod().getClass().getName() + "::" + m.getName()
+                                    + "(" + eventClass.getSimpleName() + ")", pluginParentTimer);
+                    timings.startTiming();
                     m.invoke(getMod(), event);
+                    timings.stopTiming();
                 }
             } catch (Throwable t) {
                 this.fmlController.errorOccurred(this, t);

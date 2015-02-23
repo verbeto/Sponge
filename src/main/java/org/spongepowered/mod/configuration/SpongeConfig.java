@@ -28,11 +28,10 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.commented.SimpleCommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMapper;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.Setting;
 import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.spongepowered.mod.SpongeMod;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +57,10 @@ public class SpongeConfig {
     public static final String ENTITY_MAX_SPEED = "max-speed";
     public static final String ENTITY_COLLISION_WARN_SIZE = "collision-warn-size";
     public static final String ENTITY_COUNT_WARN_SIZE = "count-warn-size";
+    public static final String ENTITY_ITEM_DESPAWN_RATE = "item-despawn-rate";
+    public static final String ENTITY_ACTIVATION_RANGE_ANIMAL = "animal-activation-range";
+    public static final String ENTITY_ACTIVATION_RANGE_MONSTER = "monster-activation-range";
+    public static final String ENTITY_ACTIVATION_RANGE_MISC = "misc-activation-range";
 
     // GENERAL
     public static final String GENERAL_DISABLE_WARNINGS = "disable-warnings";
@@ -72,6 +75,10 @@ public class SpongeConfig {
     public static final String LOGGING_ENTITY_SPAWN = "entity-spawn";
     public static final String LOGGING_ENTITY_SPEED_REMOVAL = "entity-speed-removal";
     public static final String LOGGING_STACKTRACES = "log-stacktraces";
+
+    // MODULES
+    public static final String MODULE_ENTITY_ACTIVATION_RANGE = "entity-activation-range";
+    public static final String MODULE_TIMINGS = "timings";
 
     // WORLD
     public static final String WORLD_INFINITE_WATER_SOURCE = "infinite-water-source";
@@ -107,35 +114,27 @@ public class SpongeConfig {
             }
             if (!file.exists()) {
                 file.createNewFile();
+
+                this.loader = HoconConfigurationLoader.builder().setFile(file).build();
+                if (type == Type.GLOBAL) {
+                    this.configBase = new GlobalConfig();
+                    this.configName = "GLOBAL";
+                } else if (type == Type.DIMENSION) {
+                    this.configBase = new DimensionConfig();
+                    this.configName = file.getParentFile().getName().toUpperCase();
+                } else {
+                    this.configBase = new WorldConfig();
+                    this.configName = file.getParentFile().getName().toUpperCase();
+                }
+                this.configMapper = ObjectMapper.forObject(this.configBase);
+                this.configMapper.serialize(this.root.getNode(this.modId));
+                this.loader.save(this.root);
+            } else {
+                this.loader = HoconConfigurationLoader.builder().setFile(file).build();
+                this.root = this.loader.load();
             }
         } catch (Throwable t) {
-            SpongeMod.instance.getLogger().error(ExceptionUtils.getStackTrace(t));
-        }
-
-        this.loader = HoconConfigurationLoader.builder().setFile(file).build();
-        try {
-            if (type == Type.GLOBAL) {
-                this.configBase = new GlobalConfig();
-                this.configName = "GLOBAL";
-            } else if (type == Type.DIMENSION) {
-                this.configBase = new DimensionConfig();
-                this.configName = file.getParentFile().getName().toUpperCase();
-            } else {
-                this.configBase = new WorldConfig();
-                this.configName = file.getParentFile().getName().toUpperCase();
-            }
-            this.configMapper = ObjectMapper.forObject(this.configBase);
-        } catch (ObjectMappingException e) {
-            SpongeMod.instance.getLogger().error(ExceptionUtils.getStackTrace(e));
-        }
-
-        try {
-            this.configMapper.serialize(this.root.getNode(this.modId));
-            this.loader.save(this.root);
-        } catch (IOException e) {
-            SpongeMod.instance.getLogger().error(ExceptionUtils.getStackTrace(e));
-        } catch (ObjectMappingException e) {
-            SpongeMod.instance.getLogger().error(ExceptionUtils.getStackTrace(e));
+            LogManager.getLogger().error(ExceptionUtils.getStackTrace(t));
         }
     }
 
@@ -143,7 +142,7 @@ public class SpongeConfig {
         try {
             this.loader.save(this.root);
         } catch (IOException e) {
-            SpongeMod.instance.getLogger().error(ExceptionUtils.getStackTrace(e));
+            LogManager.getLogger().error(ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -151,7 +150,7 @@ public class SpongeConfig {
         try {
             this.root = this.loader.load();
         } catch (IOException e) {
-            SpongeMod.instance.getLogger().error(ExceptionUtils.getStackTrace(e));
+            LogManager.getLogger().error(ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -181,6 +180,9 @@ public class SpongeConfig {
     }
 
     private class GlobalConfig extends ConfigBase {
+
+        @Setting(value = "modules")
+        public ModuleCategory mixins = new ModuleCategory();
     }
 
     private class DimensionConfig extends ConfigBase {
@@ -207,6 +209,8 @@ public class SpongeConfig {
         public DebugCategory debug = new DebugCategory();
         @Setting
         public EntityCategory entity = new EntityCategory();
+        @Setting(value = "entity-activation-range")
+        public EntityActivationRangeCategory entityActivationRange = new EntityActivationRangeCategory();
         @Setting
         public GeneralCategory general = new GeneralCategory();
         @Setting
@@ -250,6 +254,25 @@ public class SpongeConfig {
             @Setting(value = ENTITY_COUNT_WARN_SIZE,
                     comment = "Number of entities in one dimension before logging a warning. Set to 0 to disable")
             public int maxCountWarnSize = 0;
+            @Setting(value = ENTITY_ITEM_DESPAWN_RATE, comment = "Controls the time in ticks for when an item despawns.")
+            public int itemDespawnRate = 6000;
+        }
+
+        @ConfigSerializable
+        private class EntityActivationRangeCategory extends Category {
+
+            @Setting(
+                    value = ENTITY_ACTIVATION_RANGE_ANIMAL,
+                    comment = "Controls the block range from player that animals will become activated. Note: animals outside of this range will tick at a reduced rate to prevent server lag.")
+            public int animalActivationRange = 32;
+            @Setting(
+                    value = ENTITY_ACTIVATION_RANGE_MONSTER,
+                    comment = "Controls the block range from player that monsters will become activated. Note: monsters outside of this range will tick at a reduced rate to prevent server lag.")
+            public int monsterActivationRange = 32;
+            @Setting(
+                    value = ENTITY_ACTIVATION_RANGE_MISC,
+                    comment = "Controls the block range from player that misc entities will become activated. Note: misc entities outside of this range will tick at a reduced rate to prevent server lag.")
+            public int miscActivationRange = 32;
         }
 
         @ConfigSerializable
@@ -271,6 +294,15 @@ public class SpongeConfig {
             public boolean logEntityCollisionChecks = false;
             @Setting(value = LOGGING_ENTITY_SPEED_REMOVAL, comment = "Whether to log entity removals due to speed")
             public boolean logEntitySpeedRemoval = false;
+        }
+
+        @ConfigSerializable
+        protected class ModuleCategory extends Category {
+
+            @Setting(value = MODULE_ENTITY_ACTIVATION_RANGE)
+            public boolean pluginEntityActivation = true;
+            @Setting(value = MODULE_TIMINGS)
+            public boolean pluginTimings = true;
         }
 
         @ConfigSerializable

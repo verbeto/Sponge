@@ -1,0 +1,9 @@
+{
+    "package": "org.spongepowered.mod.mixin.timings",
+    "plugin": "org.spongepowered.mod.mixin.plugin.timings.TimingsPlugin",
+    "refmap": "mixins.sponge.refmap.json",
+    "mixins": [
+        "MixinActivationRange",
+        "MixinCommandSponge"
+    ]
+}

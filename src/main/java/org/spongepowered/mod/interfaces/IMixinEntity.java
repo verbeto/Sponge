@@ -35,4 +35,14 @@ public interface IMixinEntity {
     Entity getTeleportVehicle();
 
     void setTeleportVehicle(Entity entity);
+
+    byte getActivationType();
+
+    long getActivatedTick();
+
+    boolean getDefaultActivationState();
+
+    void setActivatedTick(long tick);
+
+    void inactiveTick();
 }
