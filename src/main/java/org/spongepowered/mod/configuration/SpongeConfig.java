@@ -91,6 +91,7 @@ public class SpongeConfig<T extends SpongeConfig.ConfigBase> {
 
     // MODULES
     public static final String MODULE_ENTITY_ACTIVATION_RANGE = "entity-activation-range";
+    public static final String MODULE_ANTI_HACK = "anti-hack";
 
     // WORLD
     public static final String WORLD_INFINITE_WATER_SOURCE = "infinite-water-source";
@@ -567,6 +568,8 @@ public class SpongeConfig<T extends SpongeConfig.ConfigBase> {
 
         @Setting(value = MODULE_ENTITY_ACTIVATION_RANGE)
         private boolean pluginEntityActivation = true;
+        @Setting(value = MODULE_ANTI_HACK)
+        private boolean pluginAntiHack = true;
 
         public boolean usePluginEntityActivation() {
             return this.pluginEntityActivation;
@@ -574,6 +577,14 @@ public class SpongeConfig<T extends SpongeConfig.ConfigBase> {
 
         public void setPluginEntityActivation(boolean pluginEntityActivation) {
             this.pluginEntityActivation = pluginEntityActivation;
+        }
+
+        public boolean usePluginAntiHack() {
+            return this.pluginAntiHack;
+        }
+
+        public void setPluginAntiHack(boolean pluginAntiHack) {
+            this.pluginAntiHack = pluginAntiHack;
         }
     }
 

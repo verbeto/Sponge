@@ -1,0 +1,7 @@
+{
+    "package": "org.spongepowered.mod.mixin.antihack",
+    "plugin": "org.spongepowered.mod.mixin.plugin.antihack.AntiHackPlugin",
+    "refmap": "mixins.sponge.refmap.json",
+    "mixins": [
+    ]
+}
