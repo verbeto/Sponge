@@ -39,6 +39,7 @@ public class SpongeCoremod implements IFMLLoadingPlugin {
         env.addConfiguration("mixins.sponge.core.json");
         env.addConfiguration("mixins.sponge.api.json");
         env.addConfiguration("mixins.sponge.entityactivation.json");
+        env.addConfiguration("mixins.sponge.antihack.json");
 
         // Transformer exclusions
         Launch.classLoader.addTransformerExclusion("ninja.leaping.configurate");

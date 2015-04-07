@@ -3,5 +3,6 @@
     "plugin": "org.spongepowered.mod.mixin.plugin.antihack.AntiHackPlugin",
     "refmap": "mixins.sponge.refmap.json",
     "mixins": [
+		"MixinNetHandlerPlayServer"
     ]
 }
