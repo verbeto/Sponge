@@ -26,6 +26,7 @@ package org.spongepowered.mod.mixin.core.entity;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -174,57 +175,111 @@ public abstract class MixinEntity implements Entity, IMixinEntity {
 
     @Override
     public void setLocation(Location location) {
-        setLocation(location, true);
+        setLocationAndRotationRelative(location, getRotation(), EnumSet.noneOf(RelativePositions.class), false);
     }
 
     @Override
     public void setLocationAndRotation(Location location, Vector3d rotation) {
-        setLocation(location);
-        setRotation(rotation);
+        setLocationAndRotationRelative(location, rotation, EnumSet.noneOf(RelativePositions.class), false);
     }
 
     @Override
     public boolean setLocationSafely(Location location) {
-        return setLocation(location, false);
+        return setLocationAndRotationRelative(location, getRotation(), EnumSet.noneOf(RelativePositions.class), true);
     }
 
     @Override
     public boolean setLocationAndRotationSafely(Location location, Vector3d rotation) {
-        boolean relocated = setLocation(location, false);
-        setRotation(rotation);
-        return relocated;
+        return setLocationAndRotationRelative(location, rotation, EnumSet.noneOf(RelativePositions.class), true);
     }
 
     @Override
     public boolean setLocationAndRotationSafely(Location location, Vector3d rotation, EnumSet<RelativePositions> relativePositions) {
-        return setLocationAndRotation(location, rotation, relativePositions, true);
+        return setLocationAndRotationRelative(location, rotation, relativePositions, true);
     }
 
-    public boolean setLocation(Location location, boolean forced) {
-        if (isRemoved()) {
-            return false;
-        }
+    public boolean setLocationAndRotationRelative(Location location, Vector3d rotation, EnumSet<RelativePositions> relativePositions, boolean
+            forced) {
 
         Entity spongeEntity = this;
         net.minecraft.entity.Entity thisEntity = (net.minecraft.entity.Entity) spongeEntity;
 
-        Optional<Location> safeLocation = Optional.absent();
+        //Handle relativity
+        Location resultantLocation = location;
+        Vector3d resultantRotation = rotation;
+
+        if (thisEntity instanceof EntityPlayerMP) {
+            //Players use different logic, as they support real relative movement.
+            EnumSet relativeFlags = EnumSet.noneOf(EnumFlags.class);
+
+            if (relativePositions.contains(RelativePositions.X)) {
+                relativeFlags.add(EnumFlags.X);
+            }
+
+            if (relativePositions.contains(RelativePositions.Y)) {
+                relativeFlags.add(EnumFlags.Y);
+            }
+
+            if (relativePositions.contains(RelativePositions.Z)) {
+                relativeFlags.add(EnumFlags.Z);
+            }
+
+            if (relativePositions.contains(RelativePositions.PITCH)) {
+                relativeFlags.add(EnumFlags.Y_ROT);
+            }
+
+            if (relativePositions.contains(RelativePositions.YAW)) {
+                relativeFlags.add(EnumFlags.X_ROT);
+            }
+
+            relativePositions = relativeFlags;
+
+        } else {
+            if (relativePositions.contains(RelativePositions.X)) {
+                resultantLocation.add(location.getPosition().getX(), 0, 0);
+            }
+
+            if (relativePositions.contains(RelativePositions.Y)) {
+                resultantLocation.add(0, location.getPosition().getY(), 0);
+            }
+
+            if (relativePositions.contains(RelativePositions.Z)) {
+                resultantLocation.add(0, 0, location.getPosition().getZ());
+            }
+
+            if (relativePositions.contains(RelativePositions.PITCH)) {
+                resultantRotation.add(rotation.getX(), 0, 0);
+            }
+
+            if (relativePositions.contains(RelativePositions.YAW)) {
+                resultantRotation.add(0, rotation.getY(), 0);
+            }
+        }
+
+        if (isRemoved()) {
+            setRotation(resultantRotation);
+            return false;
+        }
+
+        Optional<Location> safeLocation;
         if (!forced) {
             // Validate
             TeleportHelper teleportHelper = SpongeMod.instance.getGame().getTeleportHelper();
-            safeLocation = teleportHelper.getSafeLocation(location);
+            safeLocation = teleportHelper.getSafeLocation(resultantLocation);
             if (!safeLocation.isPresent()) {
+                setRotation(resultantRotation);
                 return false;
             } else {
-                location = safeLocation.get();
+                resultantLocation = safeLocation.get();
             }
         }
+
         // detach passengers
         net.minecraft.entity.Entity passenger = thisEntity.riddenByEntity;
         ArrayDeque<net.minecraft.entity.Entity> passengers = new ArrayDeque<net.minecraft.entity.Entity>();
         while (passenger != null) {
             if (passenger instanceof EntityPlayerMP && !this.worldObj.isRemote) {
-                ((EntityPlayerMP) passenger).mountEntity(null);
+                passenger.mountEntity(null);
             }
             net.minecraft.entity.Entity nextPassenger = null;
             if (passenger.riddenByEntity != null) {
@@ -236,8 +291,8 @@ public abstract class MixinEntity implements Entity, IMixinEntity {
         }
 
         net.minecraft.world.World nmsWorld = null;
-        if (location.getExtent() instanceof World && ((World) location.getExtent()).getUniqueId() != ((World) this.worldObj).getUniqueId()) {
-            nmsWorld = (net.minecraft.world.World) location.getExtent();
+        if (resultantLocation.getExtent() instanceof World && ((World) resultantLocation.getExtent()).getUniqueId() != ((World) this.worldObj).getUniqueId()) {
+            nmsWorld = (net.minecraft.world.World) resultantLocation.getExtent();
             if (thisEntity instanceof EntityPlayerMP) {
                 // register dimension on client-side
                 FMLEmbeddedChannel serverChannel = NetworkRegistry.INSTANCE.getChannel("FORGE", Side.SERVER);
@@ -245,18 +300,19 @@ public abstract class MixinEntity implements Entity, IMixinEntity {
                 serverChannel.attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(thisEntity);
                 serverChannel.writeOutbound(new ForgeMessage.DimensionRegisterMessage(nmsWorld.provider.getDimensionId(),
                         ((SpongeDimensionType) ((Dimension) nmsWorld.provider).getType()).getDimensionTypeId()));
-                teleportEntity(thisEntity, location, thisEntity.dimension, nmsWorld.provider.getDimensionId(), forced);
+                teleportEntity(thisEntity, resultantLocation, thisEntity.dimension, nmsWorld.provider.getDimensionId(), forced);
                 //((IMixinServerConfigurationManager)MinecraftServer.getServer().getConfigurationManager()).respawnPlayer((EntityPlayerMP)thisEntity, ((net.minecraft.world.World)location.getExtent()).provider.getDimensionId(), false, location);
             } else {
-                teleportEntity(thisEntity, location, thisEntity.dimension, nmsWorld.provider.getDimensionId(), forced);
+                teleportEntity(thisEntity, resultantLocation, thisEntity.dimension, nmsWorld.provider.getDimensionId(), forced);
             }
         } else {
             if (thisEntity instanceof EntityPlayerMP) {
                 ((EntityPlayerMP) thisEntity).playerNetServerHandler
-                        .setPlayerLocation(location.getPosition().getX(), location.getPosition().getY(), location.getPosition().getZ(),
-                                thisEntity.rotationYaw, thisEntity.rotationPitch);
+                        .setPlayerLocation(resultantLocation.getPosition().getX(), resultantLocation.getPosition().getY(), resultantLocation.getPosition().getZ(),
+                                (float)
+                                resultantRotation.getX(), (float) resultantRotation.getY(), relativePositions);
             } else {
-                setPosition(location.getPosition().getX(), location.getPosition().getY(), location.getPosition().getZ());
+                setPosition(resultantLocation.getPosition().getX(), resultantLocation.getPosition().getY(), resultantLocation.getPosition().getZ());
             }
         }
 
@@ -265,7 +321,7 @@ public abstract class MixinEntity implements Entity, IMixinEntity {
         while (!passengers.isEmpty()) {
             net.minecraft.entity.Entity passengerEntity = passengers.remove();
             if (nmsWorld != null) {
-                teleportEntity(passengerEntity, location, passengerEntity.dimension, nmsWorld.provider.getDimensionId(), true);
+                teleportEntity(passengerEntity, resultantLocation, passengerEntity.dimension, nmsWorld.provider.getDimensionId(), true);
             }
 
             if (passengerEntity instanceof EntityPlayerMP && !this.worldObj.isRemote) {
@@ -278,81 +334,17 @@ public abstract class MixinEntity implements Entity, IMixinEntity {
             lastPassenger = passengerEntity;
         }
 
+        //By this point, the location and rotation has already been set for a player
+        if (!(thisEntity instanceof EntityPlayerMP)) {
+            setRotation(resultantRotation);
+        }
         return true;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void setLocationAndRotation(Location location, Vector3d rotation, EnumSet<RelativePositions> relativePositions) {
-        setLocationAndRotation(location, rotation, relativePositions, false);
-    }
-
-    public boolean setLocationAndRotation(Location location, Vector3d rotation, EnumSet<RelativePositions> relativePositions, boolean forced) {
-        boolean relocated = true;
-
-        if (relativePositions.isEmpty()) {
-            //This is just a normal teleport that happens to set both.
-            relocated = setLocation(location, forced);
-            setRotation(rotation);
-        } else {
-            Entity spongeEntity = this;
-            if (spongeEntity instanceof EntityPlayerMP) {
-                //Players use different logic, as they support real relative movement.
-                EnumSet relativeFlags = EnumSet.noneOf(EnumFlags.class);
-
-                if (relativePositions.contains(RelativePositions.X)) {
-                    relativeFlags.add(EnumFlags.X);
-                }
-
-                if (relativePositions.contains(RelativePositions.Y)) {
-                    relativeFlags.add(EnumFlags.Y);
-                }
-
-                if (relativePositions.contains(RelativePositions.Z)) {
-                    relativeFlags.add(EnumFlags.Z);
-                }
-
-                if (relativePositions.contains(RelativePositions.PITCH)) {
-                    relativeFlags.add(EnumFlags.Y_ROT);
-                }
-
-                if (relativePositions.contains(RelativePositions.YAW)) {
-                    relativeFlags.add(EnumFlags.X_ROT);
-                }
-
-                ((EntityPlayerMP) (Entity) this).playerNetServerHandler.setPlayerLocation(location.getPosition().getX(), location.getPosition()
-                        .getY(), location.getPosition().getZ(), (float) rotation.getX(), (float) rotation.getY(), relativeFlags);
-            } else {
-                Location resultant = getLocation();
-                Vector3d resultantRotation = getRotation();
-
-                if (relativePositions.contains(RelativePositions.X)) {
-                    resultant.add(location.getPosition().getX(), 0, 0);
-                }
-
-                if (relativePositions.contains(RelativePositions.Y)) {
-                    resultant.add(0, location.getPosition().getY(), 0);
-                }
-
-                if (relativePositions.contains(RelativePositions.Z)) {
-                    resultant.add(0, 0, location.getPosition().getZ());
-                }
-
-                if (relativePositions.contains(RelativePositions.PITCH)) {
-                    resultantRotation.add(rotation.getX(), 0, 0);
-                }
-
-                if (relativePositions.contains(RelativePositions.YAW)) {
-                    resultantRotation.add(0, rotation.getY(), 0);
-                }
-
-                //From here just a normal teleport is needed.
-                relocated = setLocation(resultant, forced);
-                setRotation(resultantRotation);
-            }
-        }
-
-        return relocated;
+        setLocationAndRotationRelative(location, rotation, relativePositions, false);
     }
 
     @Override
