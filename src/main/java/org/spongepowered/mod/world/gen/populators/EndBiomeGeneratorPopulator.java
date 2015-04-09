@@ -1,7 +1,7 @@
 /*
  * This file is part of Sponge, licensed under the MIT License (MIT).
  *
- * Copyright (c) SpongePowered <https://www.spongepowered.org>
+ * Copyright (c) SpongePowered.org <http://www.spongepowered.org>
  * Copyright (c) contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,17 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.interfaces;
+package org.spongepowered.mod.world.gen.populators;
 
-import com.google.common.collect.ImmutableList;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.util.gen.BiomeBuffer;
+import org.spongepowered.api.util.gen.MutableBlockBuffer;
+import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.gen.GeneratorPopulator;
-import org.spongepowered.api.world.gen.Populator;
-import net.minecraft.world.storage.WorldInfo;
-import org.spongepowered.mod.configuration.SpongeConfig;
 
-public interface IMixinWorld extends IPopulatorOwner {
+public class EndBiomeGeneratorPopulator implements GeneratorPopulator {
 
-    SpongeConfig<SpongeConfig.WorldConfig> getWorldConfig();
+    @Override
+    public void populate(World world, MutableBlockBuffer buffer, BiomeBuffer biomes) {
+        BlockState iblockstate = BlockTypes.END_STONE.getDefaultState();
+        for (int i = 0; i < 16; ++i) {
+            int x = i + buffer.getBlockMin().getX();
+            for (int j = 0; j < 16; ++j) {
+                int z = j + buffer.getBlockMin().getZ();
 
-    void setWorldInfo(WorldInfo worldInfo);
+                for (int l = 255; l >= 0; --l) {
+                    int y = l + buffer.getBlockMin().getY();
+                    BlockState iblockstate2 = buffer.getBlock(x, y, z);
+
+                    if (iblockstate2.getType() == BlockTypes.STONE) {
+
+                        buffer.setBlock(x, y, z, iblockstate);
+                    }
+                }
+            }
+        }
+    }
+
 }

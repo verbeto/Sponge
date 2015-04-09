@@ -34,6 +34,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+
 import net.minecraft.network.Packet;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
@@ -49,6 +50,7 @@ import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.spongepowered.api.block.BlockState;
@@ -84,6 +86,7 @@ import org.spongepowered.mod.configuration.SpongeConfig;
 import org.spongepowered.mod.effect.particle.SpongeParticleEffect;
 import org.spongepowered.mod.effect.particle.SpongeParticleHelper;
 import org.spongepowered.mod.interfaces.IMixinWorld;
+import org.spongepowered.mod.interfaces.IPopulatorOwner;
 import org.spongepowered.mod.util.SpongeHooks;
 import org.spongepowered.mod.world.border.PlayerBorderListener;
 import org.spongepowered.mod.world.gen.CustomChunkProviderGenerate;
@@ -107,23 +110,17 @@ public abstract class MixinWorld implements World, IMixinWorld {
     private ImmutableList<Populator> populators;
     private ImmutableList<GeneratorPopulator> generatorPopulators;
 
-    @Shadow
-    public WorldProvider provider;
+    @Shadow public WorldProvider provider;
 
-    @Shadow
-    protected WorldInfo worldInfo;
+    @Shadow protected WorldInfo worldInfo;
 
-    @Shadow
-    protected ISaveHandler saveHandler;
+    @Shadow protected ISaveHandler saveHandler;
 
-    @Shadow
-    public Random rand;
+    @Shadow public Random rand;
 
-    @Shadow
-    public List<net.minecraft.entity.Entity> loadedEntityList;
+    @Shadow public List<net.minecraft.entity.Entity> loadedEntityList;
 
-    @Shadow
-    private net.minecraft.world.border.WorldBorder worldBorder;
+    @Shadow private net.minecraft.world.border.WorldBorder worldBorder;
 
     @Shadow(prefix = "shadow$")
     public abstract net.minecraft.world.border.WorldBorder shadow$getWorldBorder();
@@ -159,10 +156,9 @@ public abstract class MixinWorld implements World, IMixinWorld {
         if (!client) {
             String providerName = providerIn.getDimensionName().toLowerCase().replace(" ", "_").replace("[^A-Za-z0-9_]", "");
             this.worldConfig =
-                    new SpongeConfig<SpongeConfig.WorldConfig>(SpongeConfig.Type.WORLD, new File(SpongeMod.instance.getConfigDir()
-                            + File.separator + providerName
-                            + File.separator + (providerIn.getDimensionId() == 0 ? "dim0" : providerIn.getSaveFolder().toLowerCase()), "world.conf"),
-                            "sponge");
+                    new SpongeConfig<SpongeConfig.WorldConfig>(SpongeConfig.Type.WORLD, new File(SpongeMod.instance.getConfigDir() + File.separator
+                            + providerName + File.separator + (providerIn.getDimensionId() == 0 ? "dim0" : providerIn.getSaveFolder().toLowerCase()),
+                            "world.conf"), "sponge");
         }
 
         if (FMLCommonHandler.instance().getSide() == Side.SERVER) {
@@ -175,7 +171,8 @@ public abstract class MixinWorld implements World, IMixinWorld {
     public void onGetCollidingBoundingBoxes(net.minecraft.entity.Entity entity, net.minecraft.util.AxisAlignedBB axis,
             CallbackInfoReturnable<List> cir) {
         if (!entity.worldObj.isRemote && SpongeHooks.checkBoundingBoxSize(entity, axis)) {
-            cir.setReturnValue(new ArrayList());// Removing misbehaved living entities
+            cir.setReturnValue(new ArrayList());// Removing misbehaved living
+                                                // entities
         }
     }
 
@@ -395,8 +392,7 @@ public abstract class MixinWorld implements World, IMixinWorld {
 
     @Inject(method = "updateWeatherBody()V", remap = false, at = {
             @At(value = "INVOKE", target = "Lnet/minecraft/world/storage/WorldInfo;setThundering(Z)V"),
-            @At(value = "INVOKE", target = "Lnet/minecraft/world/storage/WorldInfo;setRaining(Z)V")
-    })
+            @At(value = "INVOKE", target = "Lnet/minecraft/world/storage/WorldInfo;setRaining(Z)V") })
     private void onUpdateWeatherBody(CallbackInfo ci) {
         this.weatherStartTime = this.worldInfo.getWorldTotalTime();
     }
@@ -518,6 +514,15 @@ public abstract class MixinWorld implements World, IMixinWorld {
     @Override
     public ImmutableList<Populator> getPopulators() {
         if (this.populators == null) {
+            if (this.getChunkProvider() instanceof ChunkProviderServer) {
+                ChunkProviderServer cps = (ChunkProviderServer) this.getChunkProvider();
+                if(cps.serverChunkGenerator instanceof IPopulatorOwner) {
+                    System.out.println("Constructing pop list from chunk provider");
+                    this.populators = ((IPopulatorOwner) cps.serverChunkGenerator).getPopulators();
+                }
+            }
+        }
+        if (this.populators == null) {
             this.populators = ImmutableList.of();
         }
         return this.populators;
@@ -525,6 +530,15 @@ public abstract class MixinWorld implements World, IMixinWorld {
 
     @Override
     public ImmutableList<GeneratorPopulator> getGeneratorPopulators() {
+        if (this.generatorPopulators == null) {
+            if (this.getChunkProvider() instanceof ChunkProviderServer) {
+                ChunkProviderServer cps = (ChunkProviderServer) this.getChunkProvider();
+                if(cps.serverChunkGenerator instanceof IPopulatorOwner) {
+                    System.out.println("Constructing genpop list from chunk provider");
+                    this.generatorPopulators = ((IPopulatorOwner) cps.serverChunkGenerator).getGeneratorPopulators();
+                }
+            }
+        }
         if (this.generatorPopulators == null) {
             this.generatorPopulators = ImmutableList.of();
         }

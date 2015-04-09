@@ -198,7 +198,12 @@
         "world.MixinWorldSettings",
         "world.MixinWorldType",
         "world.biome.MixinBiomeGenBase",
+        "world.biome.MixinBiomeGenEnd",
+        "world.biome.MixinBiomeGenMesa",
         "world.difficulty.MixinEnumDifficulty",
+        "world.gen.MixinChunkProviderEnd",
+        "world.gen.MixinChunkProviderGenerate",
+        "world.gen.MixinMapGenBase",
         "world.storage.MixinWorldInfo"
     ]
 }

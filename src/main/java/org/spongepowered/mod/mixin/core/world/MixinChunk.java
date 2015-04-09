@@ -24,8 +24,8 @@
  */
 package org.spongepowered.mod.mixin.core.world;
 
-import com.flowpowered.math.vector.Vector2i;
-import com.flowpowered.math.vector.Vector3i;
+import java.util.List;
+
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -35,9 +35,11 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.util.gen.BiomeBuffer;
 import org.spongepowered.api.world.Chunk;
+import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.gen.GeneratorPopulator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,7 +51,9 @@ import org.spongepowered.mod.util.SpongeHooks;
 import org.spongepowered.mod.util.gen.FastChunkBuffer;
 import org.spongepowered.mod.util.gen.ObjectArrayMutableBiomeArea;
 
-import java.util.List;
+import com.flowpowered.math.vector.Vector2i;
+import com.flowpowered.math.vector.Vector3i;
+import com.google.common.collect.Lists;
 
 @NonnullByDefault
 @Mixin(net.minecraft.world.chunk.Chunk.class)
@@ -89,11 +93,23 @@ public abstract class MixinChunk implements Chunk {
         // of IChunkProvider provided by mods will very likely still work well
 
         List<GeneratorPopulator> populators = ((IMixinWorld) world).getGeneratorPopulators();
-        if (!populators.isEmpty()) {
+        List<GeneratorPopulator> biomeGenPop = Lists.newArrayList();
+        BiomeGenBase[] biomeArray = world.getWorldChunkManager().getBiomeGenAt(null, chunkX * 16, chunkZ * 16, 16, 16, true);
+        List<BiomeGenBase> encountered = Lists.newArrayList();
+        for(BiomeGenBase biome: biomeArray) {
+            if(encountered.contains(biome)) {
+                continue;
+            }
+            biomeGenPop.addAll(((BiomeType) biome).getGeneratorPopulators());
+            encountered.add(biome);
+        }
+        
+        if (!populators.isEmpty() || !biomeGenPop.isEmpty()) {
             FastChunkBuffer buffer = new FastChunkBuffer((net.minecraft.world.chunk.Chunk) (Object) this);
-            BiomeGenBase[] biomeArray = world.getWorldChunkManager().getBiomeGenAt(null, chunkX * 16, chunkZ * 16, 16, 16, true);
             BiomeBuffer biomes = new ObjectArrayMutableBiomeArea(biomeArray, new Vector2i(chunkX * 16, chunkZ * 16), new Vector2i(16, 16));
-
+            for (GeneratorPopulator populator : biomeGenPop) {
+                populator.populate((org.spongepowered.api.world.World) world, buffer, biomes);
+            }
             for (GeneratorPopulator populator : populators) {
                 populator.populate((org.spongepowered.api.world.World) world, buffer, biomes);
             }

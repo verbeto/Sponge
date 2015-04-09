@@ -1,7 +1,7 @@
 /*
  * This file is part of Sponge, licensed under the MIT License (MIT).
  *
- * Copyright (c) SpongePowered <https://www.spongepowered.org>
+ * Copyright (c) SpongePowered.org <http://www.spongepowered.org>
  * Copyright (c) contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,15 +24,15 @@
  */
 package org.spongepowered.mod.interfaces;
 
-import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.world.gen.GeneratorPopulator;
 import org.spongepowered.api.world.gen.Populator;
-import net.minecraft.world.storage.WorldInfo;
-import org.spongepowered.mod.configuration.SpongeConfig;
 
-public interface IMixinWorld extends IPopulatorOwner {
+import com.google.common.collect.ImmutableList;
 
-    SpongeConfig<SpongeConfig.WorldConfig> getWorldConfig();
+public interface IPopulatorOwner {
 
-    void setWorldInfo(WorldInfo worldInfo);
+    ImmutableList<Populator> getPopulators();
+
+    ImmutableList<GeneratorPopulator> getGeneratorPopulators();
+
 }

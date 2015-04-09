@@ -103,8 +103,8 @@ public final class CustomWorldChunkManager extends WorldChunkManager {
         }
 
         // Transform to normal scale
-        int xStartBlock = xStart * 4;
-        int zStartBlock = zStart * 4;
+        int xStartBlock = (xStart + 2) * 4;
+        int zStartBlock = (zStart + 2) * 4;
         int xSizeBlock = xSize * 4;
         int zSizeBlock = zSize * 4;
 
@@ -116,7 +116,7 @@ public final class CustomWorldChunkManager extends WorldChunkManager {
         byte[] biomesForBlocks = buffer.detach();
         BiomeGenBase[] biomeById = BiomeGenBase.getBiomeGenArray();
         for (int i = 0; i < biomeArrayZoomedOut.length; i++) {
-            BiomeGenBase biome = biomeById[biomesForBlocks[i * 4] & 0xff];
+            BiomeGenBase biome = biomeById[biomesForBlocks[i*4] & 0xff];
             biomeArrayZoomedOut[i] = (biome == null ? BiomeGenBase.ocean : biome);
         }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of Sponge, licensed under the MIT License (MIT).
  *
- * Copyright (c) SpongePowered <https://www.spongepowered.org>
+ * Copyright (c) SpongePowered.org <http://www.spongepowered.org>
  * Copyright (c) contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,17 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.interfaces;
+package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.ImmutableList;
-import org.spongepowered.api.world.gen.GeneratorPopulator;
-import org.spongepowered.api.world.gen.Populator;
-import net.minecraft.world.storage.WorldInfo;
-import org.spongepowered.mod.configuration.SpongeConfig;
+import net.minecraft.world.biome.BiomeGenEnd;
 
-public interface IMixinWorld extends IPopulatorOwner {
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
 
-    SpongeConfig<SpongeConfig.WorldConfig> getWorldConfig();
+@Mixin(BiomeGenEnd.class)
+public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
 
-    void setWorldInfo(WorldInfo worldInfo);
+    /*
+     * Add in our end biome genpop which replaces the stone blocks from
+     * generation with end stone.
+     */
+    @Inject(method = "<init>(I)V", at = @At("RETURN"))
+    public void onConstructed(int id, CallbackInfo ci) {
+        this.genpopulators.add(new EndBiomeGeneratorPopulator());
+    }
 }

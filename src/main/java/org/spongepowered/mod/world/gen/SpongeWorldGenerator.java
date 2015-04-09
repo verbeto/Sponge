@@ -55,7 +55,6 @@ public final class SpongeWorldGenerator implements WorldGenerator {
      */
     private List<GeneratorPopulator> generatorPopulators;
     private final WorldServer world;
-    private long seed;
     @Nullable
     private BiomeGenerator biomeGenerator;
     @Nullable
@@ -65,7 +64,6 @@ public final class SpongeWorldGenerator implements WorldGenerator {
         this.world = Preconditions.checkNotNull(world, "world");
         this.populators = ((IMixinWorld) world).getPopulators();
         this.generatorPopulators = ((IMixinWorld) world).getGeneratorPopulators();
-        this.seed = world.getSeed();
     }
 
     @Override
