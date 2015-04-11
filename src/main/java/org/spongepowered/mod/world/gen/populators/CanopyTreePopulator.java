@@ -22,30 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import static com.google.common.base.Preconditions.checkArgument;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.WorldGenAbstractTree;
+import net.minecraft.world.gen.feature.WorldGenCanopyTree;
+import org.spongepowered.api.world.Chunk;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+import java.util.Random;
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+public class CanopyTreePopulator extends SpongePopulator {
+
+    private int count;
+    private WorldGenAbstractTree gen;
+
+    public CanopyTreePopulator(int count) {
+        this.count = count;
+        this.gen = new WorldGenCanopyTree(false);
     }
+
+    @Override
+    public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
+
+        BlockPos blockpos;
+
+        for (int j = 0; j < this.count; ++j) {
+            int k = randomGenerator.nextInt(16) + 8;
+            int l = randomGenerator.nextInt(16) + 8;
+            this.gen.func_175904_e();
+            blockpos = currentWorld.getHeight(pos.add(k, 0, l));
+
+            if (this.gen.generate(currentWorld, randomGenerator, blockpos)) {
+                this.gen.func_180711_a(currentWorld, randomGenerator, blockpos);
+            }
+        }
+    }
+
 }

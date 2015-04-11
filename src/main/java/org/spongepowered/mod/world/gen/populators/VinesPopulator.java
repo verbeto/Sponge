@@ -22,30 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.WorldGenVines;
+import net.minecraft.world.gen.feature.WorldGenerator;
+import org.spongepowered.api.world.Chunk;
+import org.spongepowered.api.world.gen.populators.Vines;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import java.util.Random;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+public class VinesPopulator extends SpongePopulator implements Vines {
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+    private WorldGenerator gen;
+
+    public VinesPopulator() {
+        this.gen = new WorldGenVines();
     }
+
+    @Override
+    protected void populate(World world, Chunk chunk, Random random, BlockPos pos) {
+        int j, k, l;
+        for (j = 0; j < 50; ++j) {
+            k = random.nextInt(16) + 8;
+            l = random.nextInt(16) + 8;
+            this.gen.generate(world, random, pos.add(k, 128, l));
+        }
+    }
+
 }

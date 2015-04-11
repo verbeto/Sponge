@@ -24,28 +24,29 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import com.google.common.collect.Lists;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
+import net.minecraft.world.biome.BiomeGenSnow;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import org.spongepowered.mod.world.gen.populators.IcePathPopulator;
+import org.spongepowered.mod.world.gen.populators.IceSpikePopulator;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+@Mixin(BiomeGenSnow.class)
+public abstract class MixinBiomeGenSnow extends MixinBiomeGenBase {
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
+    @Inject(method = "<init>(IZ)V", at = @At("RETURN"))
+    public void onConstructed(int id, boolean mutated, CallbackInfo ci) {
+        if (this.populators == null) {
+            this.populators = Lists.newArrayList();
+        }
         this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+        if (mutated) {
+            this.populators.add(new IceSpikePopulator(3));
+            this.populators.add(new IcePathPopulator(2, 4));
+        }
+        super.buildPopulators(false);
     }
 }

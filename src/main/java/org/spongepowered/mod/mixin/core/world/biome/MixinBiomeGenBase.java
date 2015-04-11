@@ -24,19 +24,15 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import java.util.List;
-import java.util.Random;
-
-import net.minecraft.block.BlockSand;
+import com.google.common.collect.Lists;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeDecorator;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.ChunkPrimer;
-
-import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.biome.GroundCoverLayer;
@@ -49,8 +45,23 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.mod.world.gen.DeferredGroundCoverLayer;
+import org.spongepowered.mod.world.gen.populators.BigMushroomPopulator;
+import org.spongepowered.mod.world.gen.populators.CactusPopulator;
+import org.spongepowered.mod.world.gen.populators.ClayPopulator;
+import org.spongepowered.mod.world.gen.populators.DeadBushPopulator;
+import org.spongepowered.mod.world.gen.populators.FlowerPopulator;
+import org.spongepowered.mod.world.gen.populators.LiquidsPopulator;
+import org.spongepowered.mod.world.gen.populators.OrePopulator;
+import org.spongepowered.mod.world.gen.populators.PumpkinPopulator;
+import org.spongepowered.mod.world.gen.populators.ReedPopulator;
+import org.spongepowered.mod.world.gen.populators.SandPopulator;
+import org.spongepowered.mod.world.gen.populators.SmallMushroomPopulator;
+import org.spongepowered.mod.world.gen.populators.TallGrassPopulator;
+import org.spongepowered.mod.world.gen.populators.TreePopulator;
+import org.spongepowered.mod.world.gen.populators.WaterLilyPopulator;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Random;
 
 @NonnullByDefault
 @Mixin(BiomeGenBase.class)
@@ -69,6 +80,8 @@ public abstract class MixinBiomeGenBase implements BiomeType {
     @Shadow public IBlockState topBlock;
 
     @Shadow public IBlockState fillerBlock;
+
+    @Shadow public BiomeDecorator theBiomeDecorator;
 
     @Shadow
     public abstract float getFloatTemperature(BlockPos pos);
@@ -127,11 +140,83 @@ public abstract class MixinBiomeGenBase implements BiomeType {
         populators = Lists.newArrayList();
         genpopulators = Lists.newArrayList();
         groundcover = Lists.newArrayList();
-        groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase)(Object)this, this.topBlock, 0, 1));
-        groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase)(Object)this, this.fillerBlock, 1));
+        groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.topBlock, 0, 1));
+        groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.fillerBlock, 1));
     }
 
-    /*
+    protected void buildPopulators(boolean clear) {
+        if (this.populators == null) {
+            populators = Lists.newArrayList();
+        } else if (clear) {
+            this.populators.clear();
+        }
+        if (this.genpopulators == null) {
+            this.genpopulators = Lists.newArrayList();
+        } else if (clear) {
+            this.genpopulators.clear();
+        }
+        if (this.groundcover == null) {
+            this.groundcover = Lists.newArrayList();
+            groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.topBlock, 0, 1));
+            groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.fillerBlock, 1));
+        }
+
+        this.populators.add(new OrePopulator.DirtPopulator());
+        this.populators.add(new OrePopulator.GravelPopulator());
+        this.populators.add(new OrePopulator.DioritePopulator());
+        this.populators.add(new OrePopulator.GranitePopulator());
+        this.populators.add(new OrePopulator.AndesitePopulator());
+        this.populators.add(new OrePopulator.CoalPopulator());
+        this.populators.add(new OrePopulator.IronPopulator());
+        this.populators.add(new OrePopulator.GoldPopulator());
+        this.populators.add(new OrePopulator.RedstonePopulator());
+        this.populators.add(new OrePopulator.DiamondPopulator());
+        this.populators.add(new OrePopulator.LapisPopulator());
+
+        if(this.theBiomeDecorator.sandPerChunk2 > 0) {
+            this.populators.add(new SandPopulator(Blocks.sand, this.theBiomeDecorator.sandPerChunk2, 7));
+        }
+        if(this.theBiomeDecorator.clayPerChunk > 0) {
+            this.populators.add(new ClayPopulator(this.theBiomeDecorator.clayPerChunk, 4));
+        }
+        if(this.theBiomeDecorator.sandPerChunk > 0) {
+            this.populators.add(new SandPopulator(Blocks.gravel, this.theBiomeDecorator.sandPerChunk, 6));
+        }
+        if(this.theBiomeDecorator.treesPerChunk > 0) {
+            this.populators.add(new TreePopulator(this.theBiomeDecorator.treesPerChunk));
+        }
+        if(this.theBiomeDecorator.bigMushroomsPerChunk > 0) {
+            this.populators.add(new BigMushroomPopulator(this.theBiomeDecorator.bigMushroomsPerChunk));
+        }
+        if(this.theBiomeDecorator.flowersPerChunk > 0) {
+            this.populators.add(new FlowerPopulator(this.theBiomeDecorator.flowersPerChunk));
+        }
+        if(this.theBiomeDecorator.grassPerChunk > 0) {
+            this.populators.add(new TallGrassPopulator(this.theBiomeDecorator.grassPerChunk));
+        }
+        if(this.theBiomeDecorator.deadBushPerChunk > 0) {
+            this.populators.add(new DeadBushPopulator(this.theBiomeDecorator.deadBushPerChunk));
+        }
+        if(this.theBiomeDecorator.waterlilyPerChunk > 0) {
+            this.populators.add(new WaterLilyPopulator(this.theBiomeDecorator.waterlilyPerChunk));
+        }
+        if(this.theBiomeDecorator.mushroomsPerChunk > 0) {
+            this.populators.add(new SmallMushroomPopulator(this.theBiomeDecorator.mushroomsPerChunk));
+        }
+        if(this.theBiomeDecorator.reedsPerChunk > 0) {
+            this.populators.add(new ReedPopulator(this.theBiomeDecorator.reedsPerChunk));
+        }
+        this.populators.add(new PumpkinPopulator());
+        if(this.theBiomeDecorator.cactiPerChunk > 0) {
+            this.populators.add(new CactusPopulator(this.theBiomeDecorator.cactiPerChunk));
+        }
+
+        if (this.theBiomeDecorator.generateLakes) {
+            this.populators.add(new LiquidsPopulator());
+        }
+    }
+
+    /**
      * Calculate the depth of a layer based on the base and variance. In order
      * to replicate vanilla functionality however we first check for a
      * DeferredGroundCoverLayer and in this case we calculate the depth from the
@@ -144,10 +229,13 @@ public abstract class MixinBiomeGenBase implements BiomeType {
         return (int) (layer.getBaseDepth() + rand.nextDouble() * layer.getDepthVariance());
     }
 
-    /*
-     * We overwrite the placement of the biome top and filler blocks in order to
-     * defer to our ground cover list, which we earlier seeded with the default
-     * top and filler blocks for regularly registered biomes.
+    /**
+     * @author Deamon
+     * 
+     *         We overwrite the placement of the biome top and filler blocks in
+     *         order to defer to our ground cover list, which we earlier seeded
+     *         with the default top and filler blocks for regularly registered
+     *         biomes.
      */
     @Overwrite
     public void generateBiomeTerrain(World worldIn, Random rand, ChunkPrimer chunk, int x, int z, double stoneNoise) {

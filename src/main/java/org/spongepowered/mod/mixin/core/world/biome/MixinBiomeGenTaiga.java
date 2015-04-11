@@ -24,28 +24,29 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
-
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
+import com.google.common.collect.Lists;
+import net.minecraft.block.BlockDoublePlant;
+import net.minecraft.init.Blocks;
+import net.minecraft.world.biome.BiomeGenTaiga;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import org.spongepowered.mod.world.gen.populators.BlockBlobPopulator;
+import org.spongepowered.mod.world.gen.populators.DoublePlantPopulator;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+@Mixin(BiomeGenTaiga.class)
+public abstract class MixinBiomeGenTaiga extends MixinBiomeGenBase {
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+    @Inject(method = "<init>(II)V", at = @At("RETURN"))
+    public void onConstructed(int id, int type, CallbackInfo ci) {
+        if (this.populators == null) {
+            populators = Lists.newArrayList();
+        }
+        if (type == 1 || type == 2) {
+            this.populators.add(new BlockBlobPopulator(Blocks.cobblestone.getDefaultState(), 3, 0));
+        }
+        this.populators.add(new DoublePlantPopulator(7, 1, 1, BlockDoublePlant.EnumPlantType.FERN));
+        super.buildPopulators(false);
     }
 }

@@ -22,30 +22,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import net.minecraft.entity.boss.EntityDragon;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
+import org.spongepowered.api.world.Chunk;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+import java.util.Random;
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+public class EnderDragonPopulator extends SpongePopulator {
+
+    @Override
+    protected void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
+        if (pos.getX() == 0 && pos.getZ() == 0) {
+            EntityDragon entitydragon = new EntityDragon(currentWorld);
+            entitydragon.setLocationAndAngles(0.0D, 128.0D, 0.0D, randomGenerator.nextFloat() * 360.0F, 0.0F);
+            currentWorld.spawnEntityInWorld(entitydragon);
+        }
     }
+
 }

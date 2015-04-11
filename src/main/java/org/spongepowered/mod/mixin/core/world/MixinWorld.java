@@ -34,7 +34,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-
 import net.minecraft.network.Packet;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
@@ -42,6 +41,7 @@ import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.WorldSettings;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.WorldChunkManager;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -50,7 +50,6 @@ import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.spongepowered.api.block.BlockState;
@@ -67,6 +66,7 @@ import org.spongepowered.api.world.Dimension;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.WorldBorder;
+import org.spongepowered.api.world.WorldCreationSettings;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.gen.BiomeGenerator;
 import org.spongepowered.api.world.gen.GeneratorPopulator;
@@ -109,6 +109,7 @@ public abstract class MixinWorld implements World, IMixinWorld {
     private volatile Context worldContext;
     private ImmutableList<Populator> populators;
     private ImmutableList<GeneratorPopulator> generatorPopulators;
+    private WorldSettings creationSettings;
 
     @Shadow public WorldProvider provider;
 
@@ -582,6 +583,14 @@ public abstract class MixinWorld implements World, IMixinWorld {
     @Override
     public WorldProperties getProperties() {
         return (WorldProperties) this.worldInfo;
+    }
+    
+    @Override
+    public WorldCreationSettings getCreationSettings() {
+        if (this.creationSettings == null) {
+            this.creationSettings = new WorldSettings(this.worldInfo);
+        }
+        return (WorldCreationSettings) (Object) this.creationSettings;
     }
 
     @Override

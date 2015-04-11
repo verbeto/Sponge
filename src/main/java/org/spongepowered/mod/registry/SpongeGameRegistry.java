@@ -264,6 +264,7 @@ import org.spongepowered.mod.world.SpongeWorldBuilder;
 import org.spongepowered.mod.world.SpongeWorldTypeEnd;
 import org.spongepowered.mod.world.SpongeWorldTypeNether;
 import org.spongepowered.mod.world.SpongeWorldTypeOverworld;
+import org.spongepowered.mod.world.gen.SpongePopulatorFactory;
 import org.spongepowered.mod.world.gen.WorldGeneratorRegistry;
 
 import java.awt.Color;
@@ -535,6 +536,8 @@ public class SpongeGameRegistry implements GameRegistry {
     private final Map<Integer, String> worldFolderDimensionIdMappings = Maps.newHashMap();
     public final Map<UUID, String> worldFolderUniqueIdMappings = Maps.newHashMap();
     private final Map<String, GeneratorType> generatorTypeMappings = Maps.newHashMap();
+    
+    private final SpongePopulatorFactory populatorFactory = new SpongePopulatorFactory();
 
     private final Map<Class<? extends CatalogType>, Map<String, ? extends CatalogType>> catalogTypeMap =
             ImmutableMap.<Class<? extends CatalogType>, Map<String, ? extends CatalogType>>builder()
@@ -1797,7 +1800,7 @@ public class SpongeGameRegistry implements GameRegistry {
 
     @Override
     public PopulatorFactory getPopulatorFactory() {
-        throw new UnsupportedOperationException(); // TODO
+        return this.populatorFactory;
     }
 
     public void preInit() {

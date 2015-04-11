@@ -22,30 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import net.minecraft.block.BlockSilverfish;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.WorldGenMinable;
+import net.minecraft.world.gen.feature.WorldGenerator;
+import org.spongepowered.api.world.Chunk;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import java.util.Random;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+public class SilverFishPopulator extends SpongePopulator {
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+    private WorldGenerator gen;
+
+    public SilverFishPopulator() {
+        this.gen = new WorldGenMinable(Blocks.monster_egg.getDefaultState().withProperty(BlockSilverfish.VARIANT, BlockSilverfish.EnumType.STONE), 9);
     }
+
+    @Override
+    protected void populate(World world, Chunk chunk, Random random, BlockPos pos) {
+        int j, k, l;
+        for (int i = 0; i < 7; ++i) {
+            j = random.nextInt(16);
+            k = random.nextInt(64);
+            l = random.nextInt(16);
+            this.gen.generate(world, random, pos.add(j, k, l));
+        }
+    }
+
 }

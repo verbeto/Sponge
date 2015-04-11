@@ -27,7 +27,6 @@ package org.spongepowered.mod.mixin.core.world.gen;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.MapGenBase;
-
 import org.spongepowered.api.util.gen.BiomeBuffer;
 import org.spongepowered.api.util.gen.MutableBlockBuffer;
 import org.spongepowered.api.world.World;

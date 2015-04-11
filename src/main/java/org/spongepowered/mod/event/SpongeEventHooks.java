@@ -24,6 +24,11 @@
  */
 package org.spongepowered.mod.event;
 
+import net.minecraft.util.BlockPos;
+
+import net.minecraftforge.event.terraingen.DecorateBiomeEvent;
+import net.minecraftforge.common.MinecraftForge;
+import com.google.common.collect.Lists;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
@@ -34,9 +39,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.spongepowered.api.world.Chunk;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.gen.Populator;
+import org.spongepowered.mod.interfaces.IFlaggedPopulator;
 import org.spongepowered.mod.interfaces.IMixinEntity;
 import org.spongepowered.mod.interfaces.IMixinWorld;
 import org.spongepowered.mod.util.SpongeHooks;
+
+import java.util.List;
 
 public class SpongeEventHooks {
 
@@ -72,9 +80,31 @@ public class SpongeEventHooks {
             // it look like the plugins are in error
             throw new NullPointerException("Failed to populate chunk at (" + event.chunkX + "," + event.chunkZ + ")");
         }
+        List<String> flags = Lists.newArrayList();
         for (Populator populator : ((IMixinWorld) world).getPopulators()) {
-            populator.populate(chunk, event.rand);
+            if (populator instanceof IFlaggedPopulator) {
+                ((IFlaggedPopulator) populator).populate(event.chunkProvider, chunk, event.rand, flags);
+            } else {
+                populator.populate(chunk, event.rand);
+            }
         }
+    }
+
+    @SideOnly(Side.SERVER)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onChunkBiomeDecorate(DecorateBiomeEvent.Pre event) {
+        World world = (World) event.world;
+        int chunkStartX = event.pos.getX() / 16;
+        int chunkStartZ = event.pos.getZ() / 16;
+
+        Chunk chunk = (Chunk) event.world.getChunkFromChunkCoords(chunkStartX, chunkStartZ);
+        if (chunk == null) {
+            // When the chunk is null, there's a bug somewhere in the server
+            // Better not pass this null value to all plugins, that will make
+            // it look like the plugins are in error
+            throw new NullPointerException("Failed to populate chunk at (" + chunkStartX + "," + chunkStartZ + ")");
+        }
+
         for (Populator populator : world.getBiome(chunkStartX + 15, chunkStartZ + 15).getPopulators()) {
             populator.populate(chunk, event.rand);
         }

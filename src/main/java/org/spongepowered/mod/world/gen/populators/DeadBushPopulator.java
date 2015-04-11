@@ -22,37 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import com.google.common.collect.Lists;
+import static net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate.EventType.DEAD_BUSH;
 
+import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeGenMesa;
-import net.minecraft.world.chunk.ChunkPrimer;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.MesaBiomeGeneratorPopulator;
+import net.minecraft.world.gen.feature.WorldGenDeadBush;
+import net.minecraft.world.gen.feature.WorldGenerator;
+import net.minecraftforge.event.terraingen.TerrainGen;
+import org.spongepowered.api.world.Chunk;
 
 import java.util.Random;
 
-@Mixin(BiomeGenMesa.class)
-public abstract class MixinBiomeGenMesa extends MixinBiomeGenBase {
+public class DeadBushPopulator extends SpongePopulator {
 
-    @Inject(method = "<init>(IZZ)V", at = @At("RETURN"))
-    public void onConstructed(int id, boolean mesa, boolean trees, CallbackInfo ci) {
-        if (this.genpopulators == null) {
-            this.genpopulators = Lists.newArrayList();
-        }
-        this.genpopulators.add(new MesaBiomeGeneratorPopulator(mesa, trees));
-        super.buildPopulators(false);
+    private int deadBushPerChunk;
+    private WorldGenerator gen;
+
+    public DeadBushPopulator(int deadBushPerChunk) {
+        this.deadBushPerChunk = deadBushPerChunk;
+        this.gen = new WorldGenDeadBush();
     }
 
-    @Inject(method = "genTerrainBlocks(Lnet/minecraft/world/World;Ljava/util/Random;Lnet/minecraft/world/chunk/ChunkPrimer;IID)V", at = @At("HEAD"), cancellable = true)
-    public void genTerrainBlocks(World worldIn, Random p_180622_2_, ChunkPrimer p_180622_3_, int p_180622_4_, int p_180622_5_, double p_180622_6_,
-            CallbackInfo ci) {
-        ci.cancel();
+    @Override
+    public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
+
+        boolean doGen = TerrainGen.decorate(currentWorld, randomGenerator, pos, DEAD_BUSH);
+        for (int j = 0; doGen && j < this.deadBushPerChunk; ++j) {
+            int k = randomGenerator.nextInt(16) + 8;
+            int l = randomGenerator.nextInt(16) + 8;
+            int i1 = safeNextInt(randomGenerator, currentWorld.getHeight(pos.add(k, 0, l)).getY() * 2);
+            this.gen.generate(currentWorld, randomGenerator, pos.add(k, i1, l));
+        }
     }
 
 }

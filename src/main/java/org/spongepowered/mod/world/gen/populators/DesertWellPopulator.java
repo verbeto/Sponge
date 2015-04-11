@@ -22,30 +22,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.WorldGenDesertWells;
+import net.minecraft.world.gen.feature.WorldGenerator;
+import org.spongepowered.api.world.Chunk;
+import org.spongepowered.api.world.gen.populators.DesertWell;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import java.util.Random;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+public class DesertWellPopulator extends SpongePopulator implements DesertWell {
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+    private WorldGenerator gen;
+    private int chance;
+
+    public DesertWellPopulator(int chance) {
+        this.gen = new WorldGenDesertWells();
+        this.chance = chance;
     }
+
+    @Override
+    public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
+        if (randomGenerator.nextInt(chance) == 0) {
+            int i = randomGenerator.nextInt(16) + 8;
+            int j = randomGenerator.nextInt(16) + 8;
+            BlockPos blockpos1 = currentWorld.getHeight(pos.add(i, 0, j)).up();
+            this.gen.generate(currentWorld, randomGenerator, blockpos1);
+        }
+    }
+
+    @Override
+    public int getSpawnChance() {
+        return this.chance;
+    }
+
+    @Override
+    public void setSpawnChance(int chance) {
+        this.chance = chance;
+    }
+
 }

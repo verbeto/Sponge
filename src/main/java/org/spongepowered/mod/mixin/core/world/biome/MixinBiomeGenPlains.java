@@ -24,28 +24,35 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import com.google.common.collect.Lists;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
+import net.minecraft.world.biome.BiomeGenPlains;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import org.spongepowered.mod.interfaces.IBiomeGenPlains;
+import org.spongepowered.mod.world.gen.populators.PlainsGrassPopulator;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+@Mixin(BiomeGenPlains.class)
+public abstract class MixinBiomeGenPlains extends MixinBiomeGenBase implements IBiomeGenPlains {
+    
+    @Shadow protected boolean field_150628_aC;
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
     @Inject(method = "<init>(I)V", at = @At("RETURN"))
     public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+        if (this.populators == null) {
+            this.populators = Lists.newArrayList();
+        } else {
+            this.populators.clear();
+        }
+        this.populators.add(new PlainsGrassPopulator());
+        super.buildPopulators(false);
+    }
+    
+    @Override
+    public boolean hasSunflowers() {
+        return this.field_150628_aC;
     }
 }

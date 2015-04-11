@@ -22,30 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.world.biome;
+package org.spongepowered.mod.world.gen.populators;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import static net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate.EventType.PUMPKIN;
 
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.WorldGenPumpkin;
+import net.minecraft.world.gen.feature.WorldGenerator;
+import net.minecraftforge.event.terraingen.TerrainGen;
+import org.spongepowered.api.world.Chunk;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+import java.util.Random;
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+public class PumpkinPopulator extends SpongePopulator {
+    
+    private WorldGenerator gen;
+
+    public PumpkinPopulator() {
+        this.gen = new WorldGenPumpkin();
     }
+
+    @Override
+    public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
+        int j, k, l;
+        boolean doGen = TerrainGen.decorate(currentWorld, randomGenerator, pos, PUMPKIN);
+        if (doGen && randomGenerator.nextInt(32) == 0) {
+            j = randomGenerator.nextInt(16) + 8;
+            k = randomGenerator.nextInt(16) + 8;
+            l = safeNextInt(randomGenerator, currentWorld.getHeight(pos.add(j, 0, k)).getY() * 2);
+            this.gen.generate(currentWorld, randomGenerator, pos.add(j, l, k));
+        }
+    }
+
 }

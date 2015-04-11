@@ -24,6 +24,9 @@
  */
 package org.spongepowered.mod.world.gen;
 
+import net.minecraftforge.event.terraingen.DecorateBiomeEvent;
+import net.minecraftforge.event.terraingen.OreGenEvent;
+
 import com.flowpowered.math.vector.Vector2i;
 import com.google.common.base.Preconditions;
 import net.minecraft.block.BlockFalling;
@@ -95,8 +98,14 @@ public final class CustomChunkProviderGenerate implements IChunkProvider {
         Random random = new Random(chunkX * 341873128712L + chunkZ * 132897987541L);
         BlockFalling.fallInstantly = true;
 
+        BlockPos blockpos = new BlockPos(chunkX * 16 , 0, chunkZ * 16);
+
         // Calling the events makes the Sponge-added populators fire
         MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(chunkProvider, this.world, random, chunkX, chunkZ, false));
+        MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Pre(this.world, random, blockpos));
+        MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Pre(this.world, random, blockpos));
+        MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Post(this.world, random, blockpos));
+        MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Post(this.world, random, blockpos));
         MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(chunkProvider, this.world, random, chunkX, chunkZ, false));
 
         BlockFalling.fallInstantly = false;

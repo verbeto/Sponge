@@ -24,28 +24,18 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
-
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
-import net.minecraft.world.biome.BiomeGenEnd;
+import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.BiomeGenSavanna;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
 
-@Mixin(BiomeGenEnd.class)
-public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
+@Mixin(BiomeGenSavanna.Mutated.class)
+public abstract class MixinBiomeGenMutatedSavanna extends MixinBiomeGenBase {
 
-    /*
-     * Add in our end biome genpop which replaces the stone blocks from
-     * generation with end stone.
-     */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
-        this.populators.add(new EndSpikePopulator());
-        this.populators.add(new EnderDragonPopulator());
+    @Inject(method = "<init>(ILnet/minecraft/world/biome/BiomeGenBase;)V", at = @At("RETURN"))
+    public void onConstructed(int id, BiomeGenBase base, CallbackInfo ci) {
+        super.buildPopulators(true);
     }
 }

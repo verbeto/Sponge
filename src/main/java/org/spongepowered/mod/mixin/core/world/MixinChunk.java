@@ -24,8 +24,9 @@
  */
 package org.spongepowered.mod.mixin.core.world;
 
-import java.util.List;
-
+import com.flowpowered.math.vector.Vector2i;
+import com.flowpowered.math.vector.Vector3i;
+import com.google.common.collect.Lists;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -35,7 +36,6 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.util.gen.BiomeBuffer;
 import org.spongepowered.api.world.Chunk;
@@ -51,35 +51,35 @@ import org.spongepowered.mod.util.SpongeHooks;
 import org.spongepowered.mod.util.gen.FastChunkBuffer;
 import org.spongepowered.mod.util.gen.ObjectArrayMutableBiomeArea;
 
-import com.flowpowered.math.vector.Vector2i;
-import com.flowpowered.math.vector.Vector3i;
-import com.google.common.collect.Lists;
+import java.util.List;
 
 @NonnullByDefault
 @Mixin(net.minecraft.world.chunk.Chunk.class)
 public abstract class MixinChunk implements Chunk {
 
     private Vector3i chunkPos;
+    private Vector3i chunkMin;
+    private Vector3i chunkMax;
+    private Vector3i chunkSize;
+
     private ChunkCoordIntPair chunkCoordIntPair;
 
-    @Shadow
-    private net.minecraft.world.World worldObj;
+    @Shadow private net.minecraft.world.World worldObj;
 
-    @Shadow
-    public int xPosition;
+    @Shadow public int xPosition;
 
-    @Shadow
-    public int zPosition;
+    @Shadow public int zPosition;
 
-    @Shadow
-    private boolean isChunkLoaded;
+    @Shadow private boolean isChunkLoaded;
 
-    @Shadow
-    private boolean isTerrainPopulated;
+    @Shadow private boolean isTerrainPopulated;
 
     @Inject(method = "<init>(Lnet/minecraft/world/World;II)V", at = @At("RETURN"), remap = false)
     public void onConstructed(World world, int x, int z, CallbackInfo ci) {
         this.chunkPos = new Vector3i(x, 0, z);
+        this.chunkMin = new Vector3i(x * 16, 0, z * 16);
+        this.chunkMax = new Vector3i(x * 16 + 15, 255, z * 16 + 15);
+        this.chunkSize = new Vector3i(16, 256, 16);
         this.chunkCoordIntPair = new ChunkCoordIntPair(x, z);
     }
 
@@ -96,14 +96,14 @@ public abstract class MixinChunk implements Chunk {
         List<GeneratorPopulator> biomeGenPop = Lists.newArrayList();
         BiomeGenBase[] biomeArray = world.getWorldChunkManager().getBiomeGenAt(null, chunkX * 16, chunkZ * 16, 16, 16, true);
         List<BiomeGenBase> encountered = Lists.newArrayList();
-        for(BiomeGenBase biome: biomeArray) {
-            if(encountered.contains(biome)) {
+        for (BiomeGenBase biome : biomeArray) {
+            if (encountered.contains(biome)) {
                 continue;
             }
             biomeGenPop.addAll(((BiomeType) biome).getGeneratorPopulators());
             encountered.add(biome);
         }
-        
+
         if (!populators.isEmpty() || !biomeGenPop.isEmpty()) {
             FastChunkBuffer buffer = new FastChunkBuffer((net.minecraft.world.chunk.Chunk) (Object) this);
             BiomeBuffer biomes = new ObjectArrayMutableBiomeArea(biomeArray, new Vector2i(chunkX * 16, chunkZ * 16), new Vector2i(16, 16));
@@ -172,5 +172,20 @@ public abstract class MixinChunk implements Chunk {
     @Override
     public org.spongepowered.api.world.World getWorld() {
         return (org.spongepowered.api.world.World) this.worldObj;
+    }
+
+    @Override
+    public Vector3i getBlockMin() {
+        return this.chunkMin;
+    }
+
+    @Override
+    public Vector3i getBlockMax() {
+        return this.chunkMax;
+    }
+
+    @Override
+    public Vector3i getBlockSize() {
+        return this.chunkSize;
     }
 }

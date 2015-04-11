@@ -26,10 +26,13 @@ package org.spongepowered.mod.util.gen;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.chunk.ChunkPrimer;
-
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.util.gen.MutableBlockBuffer;
 
+/**
+ * Wraps a {@link MutableBlockBuffer} within a ChunkPrimer in order to be able
+ * to pass the block buffer to vanilla populators.
+ */
 public class ChunkBufferPrimer extends ChunkPrimer {
 
     private final MutableBlockBuffer buffer;
