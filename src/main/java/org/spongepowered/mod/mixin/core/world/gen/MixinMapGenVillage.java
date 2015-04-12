@@ -37,6 +37,12 @@ import org.spongepowered.mod.interfaces.IFlaggedPopulator;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * The placement of villages within a chunk has impact can have impact on other
+ * populators. Possibly this should be added as a concept in the API in order to
+ * allow better access and control over the function of these populators while
+ * preserving vanilla functionality.
+ */
 @Mixin(MapGenVillage.class)
 public abstract class MixinMapGenVillage extends MapGenStructure implements IFlaggedPopulator {
 
@@ -44,7 +50,7 @@ public abstract class MixinMapGenVillage extends MapGenStructure implements IFla
     public void populate(IChunkProvider provider, Chunk chunk, Random rand, List<String> flags) {
         World world = (World) chunk.getWorld();
         boolean flag = func_175794_a(world, rand, new ChunkCoordIntPair(chunk.getPosition().getX(), chunk.getPosition().getZ()));
-        if(flag) {
+        if (flag) {
             flags.add("VILLAGE");
         }
     }

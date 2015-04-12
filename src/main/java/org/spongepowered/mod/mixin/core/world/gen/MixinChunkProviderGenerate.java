@@ -1,7 +1,7 @@
 /*
  * This file is part of Sponge, licensed under the MIT License (MIT).
  *
- * Copyright (c) SpongePowered.org <http://www.spongepowered.org>
+ * Copyright (c) SpongePowered <http://www.spongepowered.org>
  * Copyright (c) contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,14 +24,10 @@
  */
 package org.spongepowered.mod.mixin.core.world.gen;
 
-import net.minecraftforge.event.terraingen.OreGenEvent;
-
-import net.minecraftforge.event.terraingen.DecorateBiomeEvent;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
@@ -46,6 +42,8 @@ import net.minecraft.world.gen.structure.MapGenStronghold;
 import net.minecraft.world.gen.structure.MapGenVillage;
 import net.minecraft.world.gen.structure.StructureOceanMonument;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.DecorateBiomeEvent;
+import net.minecraftforge.event.terraingen.OreGenEvent;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import org.spongepowered.api.world.gen.GeneratorPopulator;
 import org.spongepowered.api.world.gen.Populator;
@@ -68,20 +66,13 @@ import java.util.Random;
 @Mixin(ChunkProviderGenerate.class)
 public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPopulatorOwner {
 
+    // @formatter:off
+
     @Shadow private Random rand;
-
     @Shadow private World worldObj;
-
+    @Shadow private boolean mapFeaturesEnabled;
     @Shadow private BiomeGenBase[] biomesForGeneration;
-
-    @Shadow
-    public abstract void setBlocksInChunk(int x, int z, ChunkPrimer chunk);
-
-    @Shadow
-    public abstract void replaceBlocksForBiome(int x, int z, ChunkPrimer chunk, BiomeGenBase[] biomes);
-
     @Shadow private ChunkProviderSettings settings;
-
     @Shadow private MapGenBase caveGenerator;
     @Shadow private MapGenStronghold strongholdGenerator;
     @Shadow private MapGenVillage villageGenerator;
@@ -90,15 +81,29 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
     @Shadow private MapGenBase ravineGenerator;
     @Shadow private StructureOceanMonument oceanMonumentGenerator;
 
-    @Shadow private boolean mapFeaturesEnabled;
+    @Shadow public abstract void setBlocksInChunk(int x, int z, ChunkPrimer chunk);
+    @Shadow public abstract void replaceBlocksForBiome(int x, int z, ChunkPrimer chunk, BiomeGenBase[] biomes);
+    
+    // @formatter:on
 
     private List<Populator> populators;
     private List<GeneratorPopulator> genpopulators;
+
+    @Override
+    public ImmutableList<Populator> getPopulators() {
+        return ImmutableList.copyOf(this.populators);
+    }
+
+    @Override
+    public ImmutableList<GeneratorPopulator> getGeneratorPopulators() {
+        return ImmutableList.copyOf(this.genpopulators);
+    }
 
     @Inject(method = "<init>(Lnet/minecraft/world/World;JZLjava/lang/String;)V", at = @At("RETURN"))
     public void onConstructed(World worldIn, long seed, boolean mapFeatures, String generatorOptions, CallbackInfo ci) {
         this.populators = Lists.newArrayList();
         this.genpopulators = Lists.newArrayList();
+
         if (this.settings.useCaves) {
             this.genpopulators.add((GeneratorPopulator) this.caveGenerator);
         }
@@ -126,9 +131,9 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
         if (this.settings.useMonuments && this.mapFeaturesEnabled) {
             this.genpopulators.add((GeneratorPopulator) this.oceanMonumentGenerator);
         }
-        
+
         // BEGIN populators
-        
+
         if (this.settings.useMineShafts && this.mapFeaturesEnabled) {
             this.populators.add((Populator) this.mineshaftGenerator);
         }
@@ -136,7 +141,7 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
         if (this.settings.useVillages && this.mapFeaturesEnabled) {
             this.populators.add((Populator) this.villageGenerator);
         }
-        
+
         if (this.settings.useStrongholds && this.mapFeaturesEnabled) {
             this.populators.add((Populator) this.strongholdGenerator);
         }
@@ -185,7 +190,7 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
 
         // BEGIN populator removal
         // These populators are moved to the genpopulator list
-        
+
 //        if (this.settings.useCaves) {
 //            this.caveGenerator.populate(this, this.worldObj, x, z, chunkprimer);
 //        }
@@ -239,27 +244,32 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
     public void populate(IChunkProvider chunk, int x, int z) {
         BlockFalling.fallInstantly = true;
         BlockPos blockpos = new BlockPos(x * 16, 0, z * 16);
-        BiomeGenBase biomegenbase = this.worldObj.getBiomeGenForCoords(blockpos.add(16, 0, 16));
+//        BiomeGenBase biomegenbase = this.worldObj.getBiomeGenForCoords(blockpos.add(16, 0, 16));
         this.rand.setSeed(this.worldObj.getSeed());
-        long i1 = this.rand.nextLong() / 2L * 2L + 1L;
-        long j1 = this.rand.nextLong() / 2L * 2L + 1L;
-        this.rand.setSeed((long) x * i1 + (long) z * j1 ^ this.worldObj.getSeed());
-        boolean flag = false;
-        //ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(x, z);
-        int k = x * 16;
-        int l = z * 16;
+        long seedRandX = this.rand.nextLong() / 2L * 2L + 1L;
+        long seedRandZ = this.rand.nextLong() / 2L * 2L + 1L;
+        this.rand.setSeed((long) x * seedRandX + (long) z * seedRandZ ^ this.worldObj.getSeed());
+        // TODO This flag is typically set when the village genpop successfully
+        // adds part of a village to a chunk. However since your village
+        // populator has been exported to the populators list we need an
+        // alternate solution for setting this flag correctly
+        boolean villageFlag = false;
+//        ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(x, z);
+//        int k = x * 16;
+//        int l = z * 16;
 
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(chunk, worldObj, rand, x, z, flag));
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(chunk, worldObj, rand, x, z, villageFlag));
 
         // BEGIN populator removal
-        // These populator calls are instead done by the reference to the populator list
-        
+        // These populator calls are instead done by the reference to the
+        // populator list
+
 //        if (this.settings.useMineShafts && this.mapFeaturesEnabled) {
 //            this.mineshaftGenerator.func_175794_a(this.worldObj, this.rand, chunkcoordintpair);
 //        }
 
 //        if (this.settings.useVillages && this.mapFeaturesEnabled) {
-//            flag = this.villageGenerator.func_175794_a(this.worldObj, this.rand, chunkcoordintpair);
+//            villageFlag = this.villageGenerator.func_175794_a(this.worldObj, this.rand, chunkcoordintpair);
 //        }
 
 //        if (this.settings.useStrongholds && this.mapFeaturesEnabled) {
@@ -329,27 +339,21 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
 //            }
 //        }
         // END populator removal
-        
+
         // BEGIN sponge additions
-        // need to call these here as we are no longer running the biome's decorators
+        // need to call these here as we are no longer running the biome's
+        // decorators
         MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Pre(worldObj, rand, blockpos));
         MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Pre(worldObj, rand, blockpos));
         MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Post(worldObj, rand, blockpos));
         MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Post(worldObj, rand, blockpos));
         // END sponge additions
-        
-        // TODO the flag here will always be false, needs to reference whether the village populator was successful
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(chunk, worldObj, rand, x, z, flag));
+
+        // TODO the flag here will always be false, needs to reference whether
+        // the village populator was successful
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(chunk, worldObj, rand, x, z, villageFlag));
 
         BlockFalling.fallInstantly = false;
-    }
-
-    public ImmutableList<Populator> getPopulators() {
-        return ImmutableList.copyOf(this.populators);
-    }
-
-    public ImmutableList<GeneratorPopulator> getGeneratorPopulators() {
-        return ImmutableList.copyOf(this.genpopulators);
     }
 
 }

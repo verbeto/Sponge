@@ -43,8 +43,8 @@ public abstract class MixinMapGenBase implements GeneratorPopulator {
 
     @Override
     public void populate(World world, MutableBlockBuffer buffer, BiomeBuffer biomes) {
-        int x = buffer.getBlockMin().getX()/16;
-        int z = buffer.getBlockMin().getZ()/16;
+        int x = buffer.getBlockMin().getX() / 16;
+        int z = buffer.getBlockMin().getZ() / 16;
         func_175792_a(((net.minecraft.world.World) world).getChunkProvider(), (net.minecraft.world.World) world, x, z, new ChunkBufferPrimer(buffer));
     }
 

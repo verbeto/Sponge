@@ -34,6 +34,11 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.Random;
 
+/**
+ * This mixin is making MapGenStructure be a populator as well as a
+ * generatorpopulator as the structures are called both from the generation
+ * phase and the population phase of chunk creation.
+ */
 @Mixin(MapGenStructure.class)
 public abstract class MixinMapGenStructure implements Populator {
 
@@ -43,7 +48,6 @@ public abstract class MixinMapGenStructure implements Populator {
     @Override
     public void populate(Chunk chunk, Random random) {
         World world = (World) chunk.getWorld();
-        
         func_175794_a(world, random, new ChunkCoordIntPair(chunk.getPosition().getX(), chunk.getPosition().getZ()));
     }
 

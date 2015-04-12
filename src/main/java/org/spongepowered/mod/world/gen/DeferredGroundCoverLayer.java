@@ -32,6 +32,10 @@ import net.minecraft.world.biome.BiomeGenBase;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.world.biome.GroundCoverLayer;
 
+/**
+ * This is a special {@link GroundCoverLayer} which defers the blockstate to the
+ * biome blocks and the depth to a value based on the stone noise field.
+ */
 public class DeferredGroundCoverLayer extends GroundCoverLayer {
 
     private final int index;
@@ -59,8 +63,9 @@ public class DeferredGroundCoverLayer extends GroundCoverLayer {
         this.deferredDepth = false;
     }
 
+    @Override
     public BlockState getState() {
-        if(this.index == 0) {
+        if (this.index == 0) {
             return (BlockState) biome.topBlock;
         }
         return (BlockState) biome.fillerBlock;

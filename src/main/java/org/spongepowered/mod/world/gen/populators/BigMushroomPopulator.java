@@ -48,7 +48,7 @@ public class BigMushroomPopulator extends SpongePopulator implements BigMushroom
     public BigMushroomPopulator(int bigMushroomsPerChunk) {
         this.bigMushroomsPerChunk = bigMushroomsPerChunk;
         this.gen = new WorldGenBigMushroom();
-        //this.type = BigMushroomTypes.RANDOM;
+        // this.type = BigMushroomTypes.RANDOM;
     }
 
     /*public BigMushroomPopulator(int bigMushroomsPerChunk, BigMushroomType type) {

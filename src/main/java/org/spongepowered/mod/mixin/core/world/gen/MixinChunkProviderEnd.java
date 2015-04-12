@@ -24,7 +24,6 @@
  */
 package org.spongepowered.mod.mixin.core.world.gen;
 
-import org.spongepowered.api.world.Chunk;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
@@ -33,6 +32,7 @@ import net.minecraft.world.gen.ChunkProviderEnd;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.ChunkProviderEvent;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
+import org.spongepowered.api.world.Chunk;
 import org.spongepowered.api.world.gen.Populator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -43,18 +43,21 @@ import java.util.Random;
 @Mixin(ChunkProviderEnd.class)
 public abstract class MixinChunkProviderEnd implements IChunkProvider {
 
+    // @formatter:off
+    
     @Shadow private int chunkX;
     @Shadow private int chunkZ;
     @Shadow private World endWorld;
     @Shadow private Random endRNG;
 
+    // @formatter:on
+
     /**
      * @author Deamon
      * 
-     *         We overwrite this function with just the forge event call as the
-     *         functionality of replacing the stone blocks with end stone has
-     *         been moved to a genpop (EndBiomeGeneratorPopulator) attached to
-     *         BiomeGenEnd.
+     * We overwrite this function with just the forge event call as the
+     * functionality of replacing the stone blocks with end stone has been moved
+     * to a genpop (EndBiomeGeneratorPopulator) attached to BiomeGenEnd.
      */
     @Overwrite
     public void func_180519_a(ChunkPrimer primer) {
@@ -127,7 +130,7 @@ public abstract class MixinChunkProviderEnd implements IChunkProvider {
 
         MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(provider, endWorld, endWorld.rand, x, z, false));
 
-        //BEGIN sponge code
+        // BEGIN sponge code
         // Since we're not calling the biome decorate forge events here(to stay
         // consistent with standard behavior) we instead directly call the
         // biome's populators
@@ -137,10 +140,9 @@ public abstract class MixinChunkProviderEnd implements IChunkProvider {
             // When the chunk is null, there's a bug somewhere in the server
             // Better not pass this null value to all plugins, that will make
             // it look like the plugins are in error
-            throw new NullPointerException("Failed to populate chunk at (" + x + "," + z + ")");
+            throw new NullPointerException("Failed to fetch chunk at (" + x + "," + z + ") during population.");
         }
-        for (Populator populator : ((org.spongepowered.api.world.World) this.endWorld).getBiome(x * 16 + 15, z * 16 + 15)
-                .getPopulators()) {
+        for (Populator populator : ((org.spongepowered.api.world.World) this.endWorld).getBiome(x * 16 + 15, z * 16 + 15).getPopulators()) {
             populator.populate(chunk, this.endRNG);
         }
 

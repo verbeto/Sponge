@@ -61,18 +61,18 @@ public class BigTreePopulator extends SpongePopulator implements HugeTree {
     }
 
     @Override
-    public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
+    public void populate(World currentWorld, Chunk chunk, Random rand, BlockPos pos) {
 
         BlockPos blockpos;
 
-        for (int j = 0; j < this.count; ++j) {
-            int k = randomGenerator.nextInt(16) + 8;
-            int l = randomGenerator.nextInt(16) + 8;
+        for (int n = 0; n < this.count; ++n) {
+            int randX = rand.nextInt(16) + 8;
+            int randZ = rand.nextInt(16) + 8;
             this.gen.func_175904_e();
-            blockpos = currentWorld.getHeight(pos.add(k, 0, l));
+            blockpos = currentWorld.getHeight(pos.add(randX, 0, randZ));
 
-            if (this.gen.generate(currentWorld, randomGenerator, blockpos)) {
-                this.gen.func_180711_a(currentWorld, randomGenerator, blockpos);
+            if (this.gen.generate(currentWorld, rand, blockpos)) {
+                this.gen.func_180711_a(currentWorld, rand, blockpos);
             }
         }
     }
