@@ -62,7 +62,7 @@ import org.spongepowered.mod.interfaces.Subjectable;
 import org.spongepowered.mod.text.SpongeChatComponent;
 import org.spongepowered.mod.text.SpongeText;
 import org.spongepowered.mod.text.chat.SpongeChatType;
-import org.spongepowered.mod.text.title.SpongeTitle;
+import org.spongepowered.mod.text.title.SpongeTitles;
 import org.spongepowered.mod.util.VecHelper;
 
 import java.util.List;
@@ -129,7 +129,7 @@ public abstract class MixinEntityPlayerMP extends MixinEntityPlayer implements C
     }
 
     public void playermp$sendTitle(Title title) {
-        ((SpongeTitle) title).send((EntityPlayerMP) (Object) this);
+        SpongeTitles.send(title, (EntityPlayerMP) (Object) this);
     }
 
     public void playermp$resetTitle() {
