@@ -91,6 +91,7 @@ import org.spongepowered.api.block.tile.carrier.Furnace;
 import org.spongepowered.api.block.tile.carrier.Hopper;
 import org.spongepowered.api.data.DataManipulatorRegistry;
 import org.spongepowered.api.data.manipulators.tileentities.BannerData;
+import org.spongepowered.api.data.manipulators.tileentities.BeaconData;
 import org.spongepowered.api.data.types.Art;
 import org.spongepowered.api.data.types.Arts;
 import org.spongepowered.api.data.types.BannerPatternShape;
@@ -219,6 +220,8 @@ import org.spongepowered.mod.SpongeMod;
 import org.spongepowered.mod.block.meta.SpongeNotePitch;
 import org.spongepowered.mod.block.meta.SpongeSkullType;
 import org.spongepowered.mod.configuration.SpongeConfig;
+import org.spongepowered.mod.data.SpongeManipulatorRegistry;
+import org.spongepowered.mod.data.builders.tiles.SpongeBeaconDataBuilder;
 import org.spongepowered.mod.effect.particle.SpongeParticleEffectBuilder;
 import org.spongepowered.mod.effect.particle.SpongeParticleType;
 import org.spongepowered.mod.effect.sound.SpongeSound;
@@ -912,7 +915,7 @@ public class SpongeGameRegistry implements GameRegistry {
 
     @Override
     public DataManipulatorRegistry getManipulatorRegistry() {
-        throw new UnsupportedOperationException(); //TODO
+        return SpongeManipulatorRegistry.getInstance();
     }
 
     @Override
@@ -1748,6 +1751,7 @@ public class SpongeGameRegistry implements GameRegistry {
     private void setupSerialization() {
         Game game = SpongeMod.instance.getGame();
         SerializationService service = game.getServiceManager().provide(SerializationService.class).get();
+        DataManipulatorRegistry dataRegistry = getManipulatorRegistry();
         // TileEntities
         service.registerBuilder(Banner.class, new SpongeBannerBuilder(game));
         service.registerBuilder(BannerData.PatternLayer.class, new SpongePatternLayerBuilder(game));
@@ -1768,6 +1772,9 @@ public class SpongeGameRegistry implements GameRegistry {
         service.registerBuilder(Sign.class, new SpongeSignBuilder(game));
         service.registerBuilder(Skull.class, new SpongeSkullBuilder(game));
 
+        SpongeBeaconDataBuilder beaconBuilder = new SpongeBeaconDataBuilder();
+        service.registerBuilder(BeaconData.class, beaconBuilder);
+        dataRegistry.register(BeaconData.class, beaconBuilder);
         // User
         // TODO someone needs to write a User implementation...
     }
