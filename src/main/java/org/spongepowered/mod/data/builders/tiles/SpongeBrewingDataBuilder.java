@@ -22,23 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.data.builders.tiles;
 
-final class EntityManipulatorUtil {
+import static org.spongepowered.mod.data.manipulators.tiles.TileManipulatorUtility.fillBrewingData;
 
-    private EntityManipulatorUtil() {
+import com.google.common.base.Optional;
+import org.spongepowered.api.data.DataHolder;
+import org.spongepowered.api.data.DataManipulatorBuilder;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.manipulators.tileentities.BrewingData;
+import org.spongepowered.api.service.persistence.DataBuilder;
+import org.spongepowered.api.service.persistence.InvalidDataException;
+import org.spongepowered.mod.data.manipulators.tiles.SpongeBrewingData;
+
+public class SpongeBrewingDataBuilder implements DataManipulatorBuilder<BrewingData>, DataBuilder<BrewingData> {
+
+    @Override
+    public Optional<BrewingData> build(DataView container) throws InvalidDataException {
+        return null;
     }
 
-    static {}
+    @Override
+    public BrewingData create() {
+        return new SpongeBrewingData();
+    }
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
+    @Override
+    public Optional<BrewingData> createFrom(DataHolder dataHolder) {
+        BrewingData data = create();
+        return fillBrewingData(data, dataHolder) ? Optional.of(data) : Optional.<BrewingData>absent();
+    }
+
 }

@@ -26,13 +26,36 @@ package org.spongepowered.mod.data.manipulators.tiles;
 
 import net.minecraft.potion.Potion;
 import net.minecraft.tileentity.TileEntityBeacon;
+import net.minecraft.tileentity.TileEntityBrewingStand;
+import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.tileentity.TileEntityHopper;
+import net.minecraft.tileentity.TileEntityLockable;
+import net.minecraft.tileentity.TileEntityNote;
+import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.IChatComponent;
 import org.spongepowered.api.data.DataHolder;
+import org.spongepowered.api.data.manipulators.tileentities.BannerData;
 import org.spongepowered.api.data.manipulators.tileentities.BeaconData;
+import org.spongepowered.api.data.manipulators.tileentities.BrewingData;
+import org.spongepowered.api.data.manipulators.tileentities.CooldownData;
+import org.spongepowered.api.data.manipulators.tileentities.FurnaceData;
+import org.spongepowered.api.data.manipulators.tileentities.LockableData;
+import org.spongepowered.api.data.manipulators.tileentities.NoteData;
+import org.spongepowered.api.data.manipulators.tileentities.SignData;
 import org.spongepowered.api.potion.PotionEffectType;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.mod.block.meta.SpongeNotePitch;
 
 public final class TileManipulatorUtility {
 
     private TileManipulatorUtility() {
+    }
+
+    public static boolean fillBannerData(BannerData data, DataHolder holder) {
+        // TODO Actually do this one.
+
+        // TODO handle for data from ItemStacks.
+        return false;
     }
 
     public static boolean fillBeaconData(BeaconData data, DataHolder holder) {
@@ -49,6 +72,72 @@ public final class TileManipulatorUtility {
             } else {
                 data.setSecondaryEffect((PotionEffectType) Potion.potionTypes[secondaryId]);
             }
+            return true;
+        }
+        // TODO handle for data from ItemStacks.
+        return false;
+    }
+
+    public static boolean fillBrewingData(BrewingData data, DataHolder holder) {
+        if (holder instanceof TileEntityBrewingStand) {
+            final int remainingBrewTime = ((TileEntityBrewingStand) holder).getField(0);
+            data.setRemainingBrewTime(remainingBrewTime);
+            return true;
+        }
+        // TODO handle for data from ItemStacks.
+        return false;
+    }
+
+    public static boolean fillCooldownData(CooldownData data, DataHolder holder) {
+        if (holder instanceof TileEntityHopper) {
+            final int transferCooldown = ((TileEntityHopper) holder).transferCooldown;
+            data.setCooldown(transferCooldown);
+            return true;
+        }
+        // TODO handle for data from ItemStacks.
+        return false;
+    }
+
+    public static boolean fillFurnaceData(FurnaceData data, DataHolder holder) {
+        if (holder instanceof TileEntityFurnace) {
+            final int remainingBurnTime = ((TileEntityFurnace) holder).getField(0);
+            final int remainingCookTime = ((TileEntityFurnace) holder).getField(3) - ((TileEntityFurnace) holder).getField(2);
+            data.setRemainingBurnTime(remainingBurnTime);
+            data.setRemainingCookTime(remainingCookTime);
+            return true;
+        }
+        // TODO handle for data from ItemStacks.
+        return false;
+    }
+
+    public static boolean fillLockableData(LockableData data, DataHolder holder) {
+        if (holder instanceof TileEntityLockable) {
+            final String lockToken = ((TileEntityLockable) holder).getLockCode().getLock();
+            data.setLockToken(lockToken);
+            return true;
+        }
+        // TODO handle for data from ItemStacks.
+        return false;
+    }
+
+    public static boolean fillNoteData(NoteData data, DataHolder holder) {
+        if (holder instanceof TileEntityNote) {
+            final byte note = ((TileEntityNote) holder).note;
+            data.setNote(new SpongeNotePitch(note, "No idea"));
+            return true;
+        }
+        // TODO handle for data from ItemStacks.
+        return false;
+    }
+
+    public static boolean fillSignData(SignData data, DataHolder holder) {
+        if (holder instanceof TileEntitySign) {
+            final IChatComponent[] rawTexts = ((TileEntitySign) holder).signText;
+            final Text[] signTexts = new Text[rawTexts.length];
+            for (int i = 0; i < rawTexts.length; i++) {
+                signTexts[i] = (Text) rawTexts[i]; //TODO Make sure this is actually valid. If not, set something on fire.
+            }
+            data.setLines(signTexts);
             return true;
         }
         // TODO handle for data from ItemStacks.

@@ -22,23 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.data.builders.tiles;
 
-final class EntityManipulatorUtil {
+import static org.spongepowered.mod.data.manipulators.tiles.TileManipulatorUtility.fillNoteData;
 
-    private EntityManipulatorUtil() {
+import com.google.common.base.Optional;
+import org.spongepowered.api.data.DataHolder;
+import org.spongepowered.api.data.DataManipulatorBuilder;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.manipulators.tileentities.NoteData;
+import org.spongepowered.api.service.persistence.DataBuilder;
+import org.spongepowered.api.service.persistence.InvalidDataException;
+import org.spongepowered.mod.data.manipulators.tiles.SpongeNoteData;
+
+public class SpongeNoteDataBuilder implements DataManipulatorBuilder<NoteData>, DataBuilder<NoteData> {
+
+    @Override
+    public Optional<NoteData> build(DataView container) throws InvalidDataException {
+        return null;
     }
 
-    static {}
+    @Override
+    public NoteData create() {
+        return new SpongeNoteData();
+    }
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
+    @Override
+    public Optional<NoteData> createFrom(DataHolder dataHolder) {
+        NoteData data = create();
+        return fillNoteData(data, dataHolder) ? Optional.of(data) : Optional.<NoteData>absent();
+    }
+
 }

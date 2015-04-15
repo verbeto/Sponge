@@ -22,23 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.data.builders.tiles;
 
-final class EntityManipulatorUtil {
+import static org.spongepowered.mod.data.manipulators.tiles.TileManipulatorUtility.fillLockableData;
 
-    private EntityManipulatorUtil() {
+import com.google.common.base.Optional;
+import org.spongepowered.api.data.DataHolder;
+import org.spongepowered.api.data.DataManipulatorBuilder;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.manipulators.tileentities.LockableData;
+import org.spongepowered.api.service.persistence.DataBuilder;
+import org.spongepowered.api.service.persistence.InvalidDataException;
+import org.spongepowered.mod.data.manipulators.tiles.SpongeLockableData;
+
+public class SpongeLockableDataBuilder implements DataManipulatorBuilder<LockableData>, DataBuilder<LockableData> {
+
+    @Override
+    public Optional<LockableData> build(DataView container) throws InvalidDataException {
+        return null;
     }
 
-    static {}
+    @Override
+    public LockableData create() {
+        return new SpongeLockableData();
+    }
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
+    @Override
+    public Optional<LockableData> createFrom(DataHolder dataHolder) {
+        LockableData data = create();
+        return fillLockableData(data, dataHolder) ? Optional.of(data) : Optional.<LockableData>absent();
+    }
+
 }

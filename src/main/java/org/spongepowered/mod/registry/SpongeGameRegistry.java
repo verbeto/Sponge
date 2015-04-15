@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.boss.EntityDragonPart;
@@ -59,6 +60,7 @@ import net.minecraft.world.WorldSettings.GameType;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.fml.common.registry.GameData;
+
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.GameDictionary;
@@ -92,6 +94,12 @@ import org.spongepowered.api.block.tile.carrier.Hopper;
 import org.spongepowered.api.data.DataManipulatorRegistry;
 import org.spongepowered.api.data.manipulators.tileentities.BannerData;
 import org.spongepowered.api.data.manipulators.tileentities.BeaconData;
+import org.spongepowered.api.data.manipulators.tileentities.BrewingData;
+import org.spongepowered.api.data.manipulators.tileentities.CooldownData;
+import org.spongepowered.api.data.manipulators.tileentities.FurnaceData;
+import org.spongepowered.api.data.manipulators.tileentities.LockableData;
+import org.spongepowered.api.data.manipulators.tileentities.NoteData;
+import org.spongepowered.api.data.manipulators.tileentities.SignData;
 import org.spongepowered.api.data.types.Art;
 import org.spongepowered.api.data.types.Arts;
 import org.spongepowered.api.data.types.BannerPatternShape;
@@ -222,6 +230,12 @@ import org.spongepowered.mod.block.meta.SpongeSkullType;
 import org.spongepowered.mod.configuration.SpongeConfig;
 import org.spongepowered.mod.data.SpongeManipulatorRegistry;
 import org.spongepowered.mod.data.builders.tiles.SpongeBeaconDataBuilder;
+import org.spongepowered.mod.data.builders.tiles.SpongeBrewingDataBuilder;
+import org.spongepowered.mod.data.builders.tiles.SpongeCooldownDataBuilder;
+import org.spongepowered.mod.data.builders.tiles.SpongeFurnaceDataBuilder;
+import org.spongepowered.mod.data.builders.tiles.SpongeLockableDataBuilder;
+import org.spongepowered.mod.data.builders.tiles.SpongeNoteDataBuilder;
+import org.spongepowered.mod.data.builders.tiles.SpongeSignDataBuilder;
 import org.spongepowered.mod.effect.particle.SpongeParticleEffectBuilder;
 import org.spongepowered.mod.effect.particle.SpongeParticleType;
 import org.spongepowered.mod.effect.sound.SpongeSound;
@@ -1772,9 +1786,34 @@ public class SpongeGameRegistry implements GameRegistry {
         service.registerBuilder(Sign.class, new SpongeSignBuilder(game));
         service.registerBuilder(Skull.class, new SpongeSkullBuilder(game));
 
+        // TODO Is there a way to simplify this process, rather than registering it to both? 
         SpongeBeaconDataBuilder beaconBuilder = new SpongeBeaconDataBuilder();
         service.registerBuilder(BeaconData.class, beaconBuilder);
         dataRegistry.register(BeaconData.class, beaconBuilder);
+        
+        SpongeBrewingDataBuilder brewingBuilder = new SpongeBrewingDataBuilder();
+        service.registerBuilder(BrewingData.class, brewingBuilder);
+        dataRegistry.register(BrewingData.class, brewingBuilder);
+        
+        SpongeCooldownDataBuilder cooldownBuilder = new SpongeCooldownDataBuilder();
+        service.registerBuilder(CooldownData.class, cooldownBuilder);
+        dataRegistry.register(CooldownData.class, cooldownBuilder);
+        
+        SpongeFurnaceDataBuilder furnaceBuilder = new SpongeFurnaceDataBuilder();
+        service.registerBuilder(FurnaceData.class, furnaceBuilder);
+        dataRegistry.register(FurnaceData.class, furnaceBuilder);
+        
+        SpongeLockableDataBuilder lockableBuilder = new SpongeLockableDataBuilder();
+        service.registerBuilder(LockableData.class, lockableBuilder);
+        dataRegistry.register(LockableData.class, lockableBuilder);
+        
+        SpongeNoteDataBuilder noteBuilder = new SpongeNoteDataBuilder();
+        service.registerBuilder(NoteData.class, noteBuilder);
+        dataRegistry.register(NoteData.class, noteBuilder);
+        
+        SpongeSignDataBuilder signBuilder = new SpongeSignDataBuilder();
+        service.registerBuilder(SignData.class, signBuilder);
+        dataRegistry.register(SignData.class, signBuilder);
         // User
         // TODO someone needs to write a User implementation...
     }
