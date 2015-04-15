@@ -25,24 +25,22 @@
 package org.spongepowered.mod.text.title;
 
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.play.server.S45PacketTitle;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.title.Title;
 import org.spongepowered.mod.text.SpongeText;
 
-import java.util.Arrays;
-
 public class SpongeTitles {
 
     public static int DEFAULT_FADE_IN = 20;
-    public static int DEFAULT_STAY = 20;
+    public static int DEFAULT_STAY = 60;
     public static int DEFAULT_FADE_OUT = 20;
 
     public static void send(Title title, EntityPlayerMP player) {
+
+        NetHandlerPlayServer playerNetHandler = player.playerNetServerHandler;
 
         Optional<Integer> fadeIn = title.getFadeIn();
         Optional<Integer> stay = title.getStay();
@@ -50,32 +48,23 @@ public class SpongeTitles {
         Optional<Text> subtitle = title.getSubtitle();
         Optional<Text> textTitle = title.getTitle();
 
-        S45PacketTitle[] packets = new S45PacketTitle[5];
-        int i = 0;
-
         if (title.isClear()) {
-            packets[i++] = new S45PacketTitle(S45PacketTitle.Type.CLEAR, null);
+           playerNetHandler.sendPacket(new S45PacketTitle(S45PacketTitle.Type.CLEAR, null));
         }
         if (title.isReset()) {
-            packets[i++] = new S45PacketTitle(S45PacketTitle.Type.RESET, null);
+            playerNetHandler.sendPacket(new S45PacketTitle(S45PacketTitle.Type.RESET, null));
         }
         if (fadeIn.isPresent() || stay.isPresent() || fadeOut.isPresent()) {
-            packets[i++] = new S45PacketTitle(
+            playerNetHandler.sendPacket(new S45PacketTitle(
                     title.getFadeIn().or(DEFAULT_FADE_IN),
                     title.getStay().or(DEFAULT_STAY),
-                    title.getFadeOut().or(DEFAULT_FADE_OUT));
+                    title.getFadeOut().or(DEFAULT_FADE_OUT)));
         }
         if (subtitle.isPresent()) {
-            packets[i++] = new S45PacketTitle(S45PacketTitle.Type.SUBTITLE, ((SpongeText) subtitle.get()).toComponent());
+            playerNetHandler.sendPacket(new S45PacketTitle(S45PacketTitle.Type.SUBTITLE, ((SpongeText) subtitle.get()).toComponent()));
         }
         if (textTitle.isPresent()) {
-            packets[i++] = new S45PacketTitle(S45PacketTitle.Type.TITLE, ((SpongeText) textTitle.get()).toComponent());
-        }
-
-        packets = i == packets.length ? packets : Arrays.copyOf(packets, i);
-
-        for (S45PacketTitle packet : packets) {
-            player.playerNetServerHandler.sendPacket(packet);
+            playerNetHandler.sendPacket(new S45PacketTitle(S45PacketTitle.Type.TITLE, ((SpongeText) textTitle.get()).toComponent()));
         }
     }
 
