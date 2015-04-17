@@ -165,6 +165,7 @@
         "item.merchant.MixinMerchantRecipe",
         "potion.MixinPotion",
         "potion.MixinPotionEffect",
+        "scoreboard.MixinCriterion",
         "server.MixinMinecraftServer",
         "server.MixinNetHandlerHandshakeTCP",
         "server.MixinNetHandlerPlayServer",

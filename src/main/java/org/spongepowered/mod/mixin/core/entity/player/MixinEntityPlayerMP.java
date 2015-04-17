@@ -34,6 +34,11 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S02PacketChat;
+<<<<<<< Updated upstream
+=======
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.util.CombatTracker;
+>>>>>>> Stashed changes
 import net.minecraft.util.FoodStats;
 import org.apache.commons.lang3.LocaleUtils;
 import org.spongepowered.api.GameProfile;
@@ -41,6 +46,7 @@ import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.effect.particle.ParticleEffect;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.net.PlayerConnection;
+import org.spongepowered.api.scoreboard.Score;
 import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatType;
@@ -55,6 +61,7 @@ import org.spongepowered.asm.mixin.Implements;
 import org.spongepowered.asm.mixin.Interface;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.mod.effect.particle.SpongeParticleEffect;
 import org.spongepowered.mod.effect.particle.SpongeParticleHelper;
 import org.spongepowered.mod.interfaces.IMixinEntityPlayerMP;
@@ -79,6 +86,7 @@ public abstract class MixinEntityPlayerMP extends MixinEntityPlayer implements C
     public int newLevel = 0;
     public int newTotalExperience = 0;
     public boolean keepsLevel = false;
+    public Scoreboard scoreboard;
 
     @Shadow private String translator;
     @Shadow public NetHandlerPlayServer playerNetServerHandler;
@@ -167,6 +175,12 @@ public abstract class MixinEntityPlayerMP extends MixinEntityPlayer implements C
     public PlayerConnection playermp$getConnection() {
         return (PlayerConnection) this.playerNetServerHandler;
     }
+
+    public org.spongepowered.api.scoreboard.Scoreboard playermp$getScoreboard() {
+        return (org.spongepowered.api.scoreboard.Scoreboard) this.getWorldScoreboard();
+    }
+
+    //@Inject(method = "net.minecraft.entity.player.EntityPlayer.getWorldScoreboard")
 
     public void setBedLocation(@Nullable Location location) {
         this.spawnChunk = location != null ? VecHelper.toBlockPos(location.getPosition()) : null;
