@@ -44,7 +44,7 @@ import org.spongepowered.api.data.manipulators.tileentities.NoteData;
 import org.spongepowered.api.data.manipulators.tileentities.SignData;
 import org.spongepowered.api.potion.PotionEffectType;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.mod.block.meta.SpongeNotePitch;
+import org.spongepowered.mod.data.types.SpongeNotePitch;
 
 public final class TileManipulatorUtility {
 

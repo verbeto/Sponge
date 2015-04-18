@@ -22,140 +22,92 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.mixin.core.item.inventory;
+package org.spongepowered.mod.mixin.core.block.tile;
 
 import static org.spongepowered.api.data.DataQuery.of;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import net.minecraft.item.Item;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.IChatComponent;
+import org.spongepowered.api.block.tile.Sign;
+import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataManipulator;
-import org.spongepowered.api.data.DataManipulatorBuilder;
 import org.spongepowered.api.data.DataPriority;
 import org.spongepowered.api.data.DataTransactionResult;
 import org.spongepowered.api.data.Property;
-import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.MemoryDataContainer;
 import org.spongepowered.api.service.persistence.InvalidDataException;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
+import org.spongepowered.asm.mixin.Implements;
+import org.spongepowered.asm.mixin.Interface;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.mod.data.SpongeManipulatorRegistry;
-import org.spongepowered.mod.item.ItemsHelper;
 
 import java.util.Collection;
 import java.util.List;
 
-@SuppressWarnings("serial")
 @NonnullByDefault
-@Mixin(net.minecraft.item.ItemStack.class)
-public abstract class MixinItemStack implements ItemStack {
+@Implements(@Interface(iface = Sign.class, prefix = "sign$"))
+@Mixin(net.minecraft.tileentity.TileEntitySign.class)
+public abstract class MixinTileEntitySign extends MixinTileEntity {
 
-    @Shadow public int stackSize;
+    @Shadow
+    public IChatComponent[] signText;
 
-    @Shadow public abstract int getItemDamage();
-    @Shadow public abstract void setItemDamage(int meta);
-    @Shadow public abstract int getMaxStackSize();
-    @Shadow public abstract NBTTagCompound getTagCompound();
-    @Shadow(prefix = "shadow$")
-    public abstract Item shadow$getItem();
+
 
     @Override
-    public ItemType getItem() {
-        return (ItemType) shadow$getItem();
-    }
-
-    @Override
-    public int getQuantity() {
-        return this.stackSize;
-    }
-
-    @Override
-    public void setQuantity(int quantity) throws IllegalArgumentException {
-        if (quantity > this.getMaxStackQuantity()) {
-            throw new IllegalArgumentException("Quantity (" + quantity + ") exceeded the maximum stack size (" + this.getMaxStackQuantity() + ")");
-        } else {
-            this.stackSize = quantity;
-        }
-    }
-
-    @Override
-    public int getMaxStackQuantity() {
-        return getMaxStackSize();
-    }
-
-    @Override
-    public <T extends DataManipulator<T>> Optional<T> getData(Class<T> dataClass) {
-        return getOrCreate(dataClass);
-    }
-
-    @Override
-    public <T extends DataManipulator<T>> Optional<T> getOrCreate(Class<T> manipulatorClass) {
-        Optional<DataManipulatorBuilder<T>> builderOptional = SpongeManipulatorRegistry.getInstance().getBuilder(manipulatorClass);
-        if (builderOptional.isPresent()) {
-            return builderOptional.get().createFrom(this);
-        }
-        return Optional.absent();
+    public DataContainer toContainer() {
+        DataContainer container = super.toContainer();
+        List<String> lines = Lists.newArrayListWithExpectedSize(4);
+//        for (Text message: this.sign$getLines()) {
+//            lines.add(message.toString());
+//        }
+        container.set(of("Lines"), lines);
+        return container;
     }
 
     @Override
     public <T extends DataManipulator<T>> boolean remove(Class<T> manipulatorClass) {
-        return false;
+        return super.remove(manipulatorClass);
     }
 
     @Override
     public <T extends DataManipulator<T>> boolean isCompatible(Class<T> manipulatorClass) {
-        return false;
+        return super.isCompatible(manipulatorClass);
     }
 
     @Override
     public <T extends DataManipulator<T>> DataTransactionResult offer(T manipulatorData) {
-        return null;
+        return super.offer(manipulatorData);
     }
 
     @Override
     public <T extends DataManipulator<T>> DataTransactionResult offer(T manipulatorData, DataPriority priority) {
-        return null;
+        return super.offer(manipulatorData, priority);
     }
 
     @Override
     public Collection<? extends DataManipulator<?>> getManipulators() {
-        return ImmutableList.of();
+        return super.getManipulators();
     }
 
     @Override
     public <T extends Property<?, ?>> Optional<T> getProperty(Class<T> propertyClass) {
-        return Optional.absent();
+        return super.getProperty(propertyClass);
     }
 
     @Override
     public Collection<? extends Property<?, ?>> getProperties() {
-        return null;
+        return super.getProperties();
     }
 
     @Override
     public boolean validateRawData(DataContainer container) {
-        return false;
+        return super.validateRawData(container);
     }
 
     @Override
     public void setRawData(DataContainer container) throws InvalidDataException {
-
-    }
-
-    @Override
-    public DataContainer toContainer() {
-        DataContainer container = new MemoryDataContainer();
-        container.set(of("ItemType"), this.getItem().getId());
-        container.set(of("Quantity"), this.getQuantity());
-        List<DataContainer> containerList = Lists.newArrayList();
-        for (DataManipulator<?> itemData : getManipulators()) {
-            containerList.add(itemData.toContainer());
-        }
-        return container;
+        super.setRawData(container);
     }
 }

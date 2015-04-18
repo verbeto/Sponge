@@ -22,24 +22,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.interfaces;
 
-final class EntityManipulatorUtil {
+import org.spongepowered.api.data.DataView;
 
-    static {
-    }
+public interface IMixinDataHolder {
 
-    private EntityManipulatorUtil() {
-    }
+    DataView getCustomDataView();
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
 }

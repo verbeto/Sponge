@@ -22,24 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.data.meta;
 
-final class EntityManipulatorUtil {
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.spongepowered.api.data.DataQuery.of;
 
-    static {
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.MemoryDataContainer;
+import org.spongepowered.api.data.manipulators.tileentities.BannerData;
+import org.spongepowered.api.data.types.BannerPatternShape;
+import org.spongepowered.api.data.types.DyeColor;
+
+public class SpongePatternLayer implements BannerData.PatternLayer {
+
+    private final BannerPatternShape id;
+    private final DyeColor color;
+
+    public SpongePatternLayer(BannerPatternShape id, DyeColor color) {
+        this.id = checkNotNull(id);
+        this.color = checkNotNull(color);
     }
 
-    private EntityManipulatorUtil() {
+    @Override
+    public BannerPatternShape getId() {
+        return this.id;
     }
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
+    @Override
+    public DyeColor getColor() {
+        return this.color;
+    }
+
+    @Override
+    public DataContainer toContainer() {
+        DataContainer container = new MemoryDataContainer();
+        container.set(of("id"), this.id.getId());
+        container.set(of("color"), this.color.getName());
+        return container;
+    }
+
 }

@@ -163,14 +163,14 @@ public class SpongeMobSpawnerData extends AbstractDataManipulator<MobSpawnerData
     }
 
     @Override
-    public void setPossibleEntitiesToSpawn(WeightedRandomEntity... entities) {
+    public void setPossibleEntitiesToSpawn(
+            Collection<WeightedRandomEntity> entities) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void setPossibleEntitiesToSpawn(
-            Collection<WeightedRandomEntity> entities) {
+    public void setPossibleEntitiesToSpawn(WeightedRandomEntity... entities) {
         // TODO Auto-generated method stub
 
     }

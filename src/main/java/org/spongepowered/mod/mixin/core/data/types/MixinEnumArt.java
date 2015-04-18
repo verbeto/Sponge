@@ -22,24 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.mixin.core.data.types;
 
-final class EntityManipulatorUtil {
+import org.spongepowered.api.data.types.Art;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
-    static {
+@NonnullByDefault
+@Mixin(net.minecraft.entity.item.EntityPainting.EnumArt.class)
+public class MixinEnumArt implements Art {
+
+    @Shadow
+    public String title;
+
+    @Shadow
+    public int sizeX;
+
+    @Shadow
+    public int sizeY;
+
+    @Override
+    public int getHeight() {
+        return this.sizeY;
     }
 
-    private EntityManipulatorUtil() {
+    @Override
+    public int getWidth() {
+        return this.sizeX;
     }
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
+    @Override
+    public String getId() {
+        return this.title; // todo maybe prefix with 'minecraft:'
+    }
+
+    @Override
+    public String getName() {
+        return this.title;
+    }
 }

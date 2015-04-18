@@ -24,14 +24,21 @@
  */
 package org.spongepowered.mod.data;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Optional;
+import com.google.common.collect.MapMaker;
 import org.spongepowered.api.data.DataManipulator;
 import org.spongepowered.api.data.DataManipulatorBuilder;
 import org.spongepowered.api.data.DataManipulatorRegistry;
 
+import java.util.Map;
+
 public class SpongeManipulatorRegistry implements DataManipulatorRegistry {
 
     private static final SpongeManipulatorRegistry instance = new SpongeManipulatorRegistry();
+
+    private final Map<Class<? extends DataManipulator<?>>, DataManipulatorBuilder<?>> builderMap = new MapMaker().concurrencyLevel(4).makeMap();
 
     private SpongeManipulatorRegistry() {
     }
@@ -42,11 +49,16 @@ public class SpongeManipulatorRegistry implements DataManipulatorRegistry {
 
     @Override
     public <T extends DataManipulator<T>> void register(Class<T> manipulatorClass, DataManipulatorBuilder<T> builder) {
-
+        if (!this.builderMap.containsKey(checkNotNull(manipulatorClass))) {
+            this.builderMap.put(manipulatorClass, checkNotNull(builder));
+        } else {
+            throw new IllegalStateException("Already registered the DataManipulatorBuilder for " + manipulatorClass.getCanonicalName());
+        }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T extends DataManipulator<T>> Optional<DataManipulatorBuilder<T>> getBuilder(Class<T> manipulatorClass) {
-        return null;
+        return Optional.fromNullable((DataManipulatorBuilder<T>) (Object) this.builderMap.get(checkNotNull(manipulatorClass)));
     }
 }

@@ -22,24 +22,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.spongepowered.mod.data.manipulators.entities;
+package org.spongepowered.mod.data.types;
 
-final class EntityManipulatorUtil {
+import org.spongepowered.api.data.types.SkullType;
+import org.spongepowered.api.text.translation.Translation;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-    static {
+@NonnullByDefault
+public class SpongeSkullType implements SkullType {
+
+    private final byte id;
+    private final String name;
+
+    public SpongeSkullType(byte id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    private EntityManipulatorUtil() {
+    @Override
+    public String getId() {
+        return this.name; // todo later
     }
 
-    // TODO
-    /*
-    1) For all SpongeManipulators, their fill logic should depend on methods from
-       here
-    2) Accessing common data from NBTCompound form any "DataHolder" should take place with a
-       simple method in here: getCompoundType(CompoundType.ENTITY).getFoo(String):Foo
-    3) Accessing specific field variables should likely be left in a specific method
-    4) This class will blow up in terms of length and size for each DataManipulator to be
-       handled
-     */
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public Translation getTranslation() {
+        return null;
+    }
 }
