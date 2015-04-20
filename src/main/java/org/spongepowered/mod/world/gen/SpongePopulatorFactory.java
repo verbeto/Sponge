@@ -26,6 +26,7 @@ package org.spongepowered.mod.world.gen;
 
 import org.spongepowered.api.world.gen.PopulatorFactory;
 import org.spongepowered.api.world.gen.populators.BigMushroom.Builder;
+import org.spongepowered.mod.world.gen.populators.BlockBlobBuilder;
 
 public class SpongePopulatorFactory implements PopulatorFactory {
 
@@ -37,8 +38,7 @@ public class SpongePopulatorFactory implements PopulatorFactory {
 
     @Override
     public org.spongepowered.api.world.gen.populators.BlockBlob.Builder createBlockBlockPopulator() {
-        // TODO Auto-generated method stub
-        return null;
+        return new BlockBlobBuilder();
     }
 
     @Override

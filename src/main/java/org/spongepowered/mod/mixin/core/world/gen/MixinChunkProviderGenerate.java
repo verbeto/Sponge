@@ -24,6 +24,11 @@
  */
 package org.spongepowered.mod.mixin.core.world.gen;
 
+import net.minecraft.world.gen.feature.WorldGenDungeons;
+
+import net.minecraft.init.Blocks;
+import org.spongepowered.api.world.gen.populators.Lake;
+import net.minecraft.world.gen.feature.WorldGenLakes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.minecraft.block.BlockFalling;
@@ -155,15 +160,15 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
         }
 
         if (this.settings.useWaterLakes) {
-            this.populators.add(new WaterLakePopulator(this.settings));
+            this.populators.add((Populator) new WorldGenLakes(Blocks.water));
         }
 
         if (this.settings.useLavaLakes) {
-            this.populators.add(new LavaLakePopulator(this.settings));
+            this.populators.add((Populator) new WorldGenLakes(Blocks.lava));
         }
 
         if (this.settings.useDungeons) {
-            this.populators.add(new DungeonPopulator(this.settings));
+            this.populators.add((Populator) new WorldGenDungeons());
         }
 
         this.populators.add(new AnimalPopulator());
@@ -171,14 +176,15 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
     }
 
     /**
-     * @author Deamon
      * 
      * This overwrites the provideChunk method in order to remove the standard
      * calls to GeneratorPopulators as these GeneratorPopulators have instead
      * been added to the genpopulator list from the injection into the
      * constructor {@link #onConstructed}.
      * 
+     * @author Deamon
      */
+    @Override
     @Overwrite
     public Chunk provideChunk(int x, int z) {
         this.rand.setSeed((long) x * 341873128712L + (long) z * 132897987541L);
@@ -235,11 +241,12 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
     /**
      * @author Deamon
      * 
-     * This overwrites the populate method in order to remove the standard calls
-     * to Populators as these Populators have instead been added to the
-     * populator list from the injection into the constructor
-     * {@link #onConstructed}.
+     *         This overwrites the populate method in order to remove the
+     *         standard calls to Populators as these Populators have instead
+     *         been added to the populator list from the injection into the
+     *         constructor {@link #onConstructed}.
      */
+    @Override
     @Overwrite
     public void populate(IChunkProvider chunk, int x, int z) {
         BlockFalling.fallInstantly = true;
@@ -258,7 +265,7 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
 //        int k = x * 16;
 //        int l = z * 16;
 
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(chunk, worldObj, rand, x, z, villageFlag));
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(chunk, this.worldObj, this.rand, x, z, villageFlag));
 
         // BEGIN populator removal
         // These populator calls are instead done by the reference to the
@@ -343,15 +350,15 @@ public abstract class MixinChunkProviderGenerate implements IChunkProvider, IPop
         // BEGIN sponge additions
         // need to call these here as we are no longer running the biome's
         // decorators
-        MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Pre(worldObj, rand, blockpos));
-        MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Pre(worldObj, rand, blockpos));
-        MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Post(worldObj, rand, blockpos));
-        MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Post(worldObj, rand, blockpos));
+        MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Pre(this.worldObj, this.rand, blockpos));
+        MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Pre(this.worldObj, this.rand, blockpos));
+        MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Post(this.worldObj, this.rand, blockpos));
+        MinecraftForge.EVENT_BUS.post(new DecorateBiomeEvent.Post(this.worldObj, this.rand, blockpos));
         // END sponge additions
 
         // TODO the flag here will always be false, needs to reference whether
         // the village populator was successful
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(chunk, worldObj, rand, x, z, villageFlag));
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(chunk, this.worldObj, this.rand, x, z, villageFlag));
 
         BlockFalling.fallInstantly = false;
     }

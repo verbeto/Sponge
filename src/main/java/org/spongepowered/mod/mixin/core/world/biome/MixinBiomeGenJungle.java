@@ -35,9 +35,9 @@ import org.spongepowered.mod.world.gen.populators.VinesPopulator;
 @Mixin(BiomeGenJungle.class)
 public abstract class MixinBiomeGenJungle extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(IZ)V", at = @At("RETURN"))
-    public void onConstructed(int id, boolean trees, CallbackInfo ci) {
-        super.buildPopulators(true);
+    @Override
+    protected void buildPopulators() {
+        super.buildPopulators();
         this.populators.add(new MelonPopulator());
         this.populators.add(new VinesPopulator());
     }

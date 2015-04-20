@@ -24,9 +24,13 @@
  */
 package org.spongepowered.mod.world.gen.populators;
 
+import com.google.common.collect.Sets;
+
+import org.spongepowered.api.util.VariableAmount;
+import org.spongepowered.api.util.WeightedRandomObject;
+import org.spongepowered.api.world.gen.types.MushroomType;
 import com.google.common.base.Optional;
 import org.spongepowered.api.data.types.BigMushroomType;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate.EventType.BIG_SHROOM;
 import net.minecraft.util.BlockPos;
@@ -38,97 +42,38 @@ import org.spongepowered.api.world.Chunk;
 import org.spongepowered.api.world.gen.populators.BigMushroom;
 
 import java.util.Random;
+import java.util.Set;
 
 public class BigMushroomPopulator extends SpongePopulator implements BigMushroom {
 
-    private int bigMushroomsPerChunk;
-    private WorldGenerator gen;
-    //private BigMushroomType type;
+    private VariableAmount bigMushroomsPerChunk;
+    private WeightedRandomObject<MushroomType>[] types;
+    private WorldGenBigMushroom gen;
 
-    public BigMushroomPopulator(int bigMushroomsPerChunk) {
+    public BigMushroomPopulator(VariableAmount bigMushroomsPerChunk) {
         this.bigMushroomsPerChunk = bigMushroomsPerChunk;
         this.gen = new WorldGenBigMushroom();
-        // this.type = BigMushroomTypes.RANDOM;
+        this.types = Sets.newHashSet();
     }
-
-    /*public BigMushroomPopulator(int bigMushroomsPerChunk, BigMushroomType type) {
-        this.bigMushroomsPerChunk = bigMushroomsPerChunk;
-        this.type = type;
-        if (type == BigMushroomTypes.RANDOM) {
-            this.gen = new WorldGenBigMushroom();
-        } else if (type == BigMushroomTypes.BROWN) {
-            this.gen = new WorldGenBigMushroom(0);
-        } else if (type == BigMushroomTypes.RED) {
-            this.gen = new WorldGenBigMushroom(1);
-        }
-    }*/
 
     @Override
     public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
 
-        boolean doGen = TerrainGen.decorate(currentWorld, randomGenerator, pos, BIG_SHROOM);
-        for (int j = 0; doGen && j < this.bigMushroomsPerChunk; ++j) {
-            int k = randomGenerator.nextInt(16) + 8;
-            int l = randomGenerator.nextInt(16) + 8;
-            this.gen.generate(currentWorld, randomGenerator, currentWorld.getHeight(pos.add(k, 0, l)));
-        }
-    }
-
-    /*@Override
-    public BigMushroomType getType() {
-        return this.type;
     }
 
     @Override
-    public void setType(BigMushroomType type) {
-        checkNotNull(type, "type");
-        if (type != this.type) {
-            this.type = type;
-            if (type == BigMushroomTypes.RANDOM) {
-                this.gen = new WorldGenBigMushroom();
-            } else if (type == BigMushroomTypes.BROWN) {
-                this.gen = new WorldGenBigMushroom(0);
-            } else if (type == BigMushroomTypes.RED) {
-                this.gen = new WorldGenBigMushroom(1);
-            }
-        }
-    }*/
+    public Set<WeightedRandomObject<MushroomType>> getPossibleTypes() {
+        return this.types;
+    }
 
     @Override
-    public int getMushroomsPerChunk() {
+    public VariableAmount getMushroomsPerChunk() {
         return this.bigMushroomsPerChunk;
     }
 
     @Override
-    public void setMushroomsPerChunk(int count) {
-        checkArgument(count >= 0, "Number of mushrooms per chunk in BigMushroom Populator cannot be negative");
+    public void setMushroomsPerChunk(VariableAmount count) {
         this.bigMushroomsPerChunk = count;
-    }
-
-    @Override
-    public boolean usesRandomizedType() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void useRandomizedTypes(boolean state) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public Optional<BigMushroomType> getType()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setType(BigMushroomType type)
-    {
-        // TODO Auto-generated method stub
-        
     }
 
 }

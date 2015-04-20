@@ -24,29 +24,23 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.Lists;
-
 import net.minecraft.world.biome.BiomeGenSnow;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.mod.world.gen.populators.IcePathPopulator;
 import org.spongepowered.mod.world.gen.populators.IceSpikePopulator;
 
 @Mixin(BiomeGenSnow.class)
 public abstract class MixinBiomeGenSnow extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(IZ)V", at = @At("RETURN"))
-    public void onConstructed(int id, boolean mutated, CallbackInfo ci) {
-        if (this.populators == null) {
-            this.populators = Lists.newArrayList();
-        }
-        this.populators.clear();
-        if (mutated) {
+    @Shadow private boolean field_150615_aC;
+
+    @Override
+    protected void buildPopulators() {
+        if (this.field_150615_aC) {
             this.populators.add(new IceSpikePopulator(3));
             this.populators.add(new IcePathPopulator(2, 4));
         }
-        super.buildPopulators(false);
+        super.buildPopulators();
     }
 }

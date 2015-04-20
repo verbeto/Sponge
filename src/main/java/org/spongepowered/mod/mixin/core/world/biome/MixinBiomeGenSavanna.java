@@ -24,26 +24,17 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.Lists;
 import net.minecraft.block.BlockDoublePlant;
 import net.minecraft.world.biome.BiomeGenSavanna;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.mod.world.gen.populators.DoublePlantPopulator;
 
 @Mixin(BiomeGenSavanna.class)
 public abstract class MixinBiomeGenSavanna extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        if (this.populators == null) {
-            this.populators = Lists.newArrayList();
-        } else {
-            this.populators.clear();
-        }
+    @Override
+    protected void buildPopulators() {
         this.populators.add(new DoublePlantPopulator(7, 1, 1, BlockDoublePlant.EnumPlantType.GRASS));
-        super.buildPopulators(false);
+        super.buildPopulators();
     }
 }

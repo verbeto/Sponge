@@ -24,15 +24,11 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
-
-import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
 import net.minecraft.world.biome.BiomeGenEnd;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.mod.world.gen.populators.EndBiomeGeneratorPopulator;
+import org.spongepowered.mod.world.gen.populators.EndSpikePopulator;
+import org.spongepowered.mod.world.gen.populators.EnderDragonPopulator;
 
 @Mixin(BiomeGenEnd.class)
 public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
@@ -41,11 +37,11 @@ public abstract class MixinBiomeGenEnd extends MixinBiomeGenBase {
      * Add in our end biome genpop which replaces the stone blocks from
      * generation with end stone.
      */
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
+    @Override
+    protected void buildPopulators() {
         this.genpopulators.add(new EndBiomeGeneratorPopulator());
-        this.populators.clear();
         this.populators.add(new EndSpikePopulator());
         this.populators.add(new EnderDragonPopulator());
+
     }
 }

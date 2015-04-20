@@ -24,21 +24,17 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.SilverFishPopulator;
-
-import org.spongepowered.mod.world.gen.populators.EmeraldPopulator;
 import net.minecraft.world.biome.BiomeGenHills;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.mod.world.gen.populators.EmeraldPopulator;
+import org.spongepowered.mod.world.gen.populators.SilverFishPopulator;
 
 @Mixin(BiomeGenHills.class)
 public abstract class MixinBiomeGenHills extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(IZ)V", at = @At("RETURN"))
-    public void onConstructed(int id, boolean trees, CallbackInfo ci) {
-        super.buildPopulators(true);
+    @Override
+    protected void buildPopulators() {
+        super.buildPopulators();
         this.populators.add(new EmeraldPopulator());
         this.populators.add(new SilverFishPopulator());
     }

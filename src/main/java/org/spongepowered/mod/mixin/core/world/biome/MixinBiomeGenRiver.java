@@ -33,8 +33,4 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(BiomeGenRiver.class)
 public abstract class MixinBiomeGenRiver extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        super.buildPopulators(true);
-    }
 }

@@ -24,8 +24,9 @@
  */
 package org.spongepowered.mod.registry;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.spongepowered.api.data.DataManipulatorRegistry;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableBiMap;
@@ -655,7 +656,7 @@ public class SpongeGameRegistry implements GameRegistry {
     }
 
     @Override
-    public <T extends CatalogType> Collection<? extends T> getAllOf(Class<T> typeClass) {
+    public <T extends CatalogType> Collection<T> getAllOf(Class<T> typeClass) {
         Map<String, ? extends CatalogType> tempMap = this.catalogTypeMap.get(checkNotNull(typeClass, "null type class"));
         if (tempMap == null) {
             return Collections.emptyList();
@@ -1840,6 +1841,12 @@ public class SpongeGameRegistry implements GameRegistry {
         setBiomeTypes();
         setFishes();
         setCoal();
+    }
+
+    @Override
+    public DataManipulatorRegistry getManipulatorRegistry() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

@@ -24,12 +24,11 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.Lists;
-
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenMesa;
 import net.minecraft.world.chunk.ChunkPrimer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -40,18 +39,21 @@ import java.util.Random;
 @Mixin(BiomeGenMesa.class)
 public abstract class MixinBiomeGenMesa extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(IZZ)V", at = @At("RETURN"))
-    public void onConstructed(int id, boolean mesa, boolean trees, CallbackInfo ci) {
-        if (this.genpopulators == null) {
-            this.genpopulators = Lists.newArrayList();
-        }
-        this.genpopulators.add(new MesaBiomeGeneratorPopulator(mesa, trees));
-        super.buildPopulators(false);
+    @Shadow private boolean field_150626_aH; // Bryce
+    @Shadow private boolean field_150620_aI; // More trees
+
+    @Override
+    protected void buildPopulators() {
+        this.genpopulators.add(new MesaBiomeGeneratorPopulator(this.field_150626_aH, this.field_150620_aI));
+        super.buildPopulators();
     }
 
+    /**
+     * Cancel the call to place the terrain blocks as this is instead handled
+     * through our custom genpop.
+     */
     @Inject(method = "genTerrainBlocks(Lnet/minecraft/world/World;Ljava/util/Random;Lnet/minecraft/world/chunk/ChunkPrimer;IID)V", at = @At("HEAD"), cancellable = true)
-    public void genTerrainBlocks(World worldIn, Random p_180622_2_, ChunkPrimer p_180622_3_, int p_180622_4_, int p_180622_5_, double p_180622_6_,
-            CallbackInfo ci) {
+    public void genTerrainBlocks(World world, Random rand, ChunkPrimer chunk, int x, int z, double stoneNoise, CallbackInfo ci) {
         ci.cancel();
     }
 

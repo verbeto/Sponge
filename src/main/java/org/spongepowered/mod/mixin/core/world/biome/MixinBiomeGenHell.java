@@ -26,15 +26,11 @@ package org.spongepowered.mod.mixin.core.world.biome;
 
 import net.minecraft.world.biome.BiomeGenHell;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BiomeGenHell.class)
 public abstract class MixinBiomeGenHell extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        super.buildPopulators(true);
+    @Override
+    protected void buildPopulators() {
     }
 }

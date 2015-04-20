@@ -24,14 +24,9 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.Lists;
-
 import net.minecraft.world.biome.BiomeGenPlains;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.mod.interfaces.IBiomeGenPlains;
 import org.spongepowered.mod.world.gen.populators.PlainsGrassPopulator;
 
@@ -40,15 +35,10 @@ public abstract class MixinBiomeGenPlains extends MixinBiomeGenBase implements I
     
     @Shadow protected boolean field_150628_aC;
 
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        if (this.populators == null) {
-            this.populators = Lists.newArrayList();
-        } else {
-            this.populators.clear();
-        }
+    @Override
+    protected void buildPopulators() {
         this.populators.add(new PlainsGrassPopulator());
-        super.buildPopulators(false);
+        super.buildPopulators();
     }
     
     @Override

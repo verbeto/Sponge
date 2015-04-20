@@ -93,8 +93,9 @@ public class FlowerPopulator extends SpongePopulator implements Flowers {
     }
 
     @Override
-    public void setFlowersPerChunk() {
+    public void setFlowersPerChunk(int count) {
         // TODO Auto-generated method stub
+        
     }
 
     @Override
@@ -116,9 +117,9 @@ public class FlowerPopulator extends SpongePopulator implements Flowers {
     }
 
     @Override
-    public void serFlowerType(PlantType type) {
+    public void setFlowerType(PlantType type) {
         // TODO Auto-generated method stub
-
+        
     }
 
 }

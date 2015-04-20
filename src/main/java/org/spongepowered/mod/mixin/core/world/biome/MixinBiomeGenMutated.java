@@ -24,18 +24,10 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.BiomeGenMutated;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BiomeGenMutated.class)
 public abstract class MixinBiomeGenMutated extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(ILnet/minecraft/world/biome/BiomeGenBase;)V", at = @At("RETURN"))
-    public void onConstructed(int id, BiomeGenBase base, CallbackInfo ci) {
-        super.buildPopulators(true);
-    }
 }

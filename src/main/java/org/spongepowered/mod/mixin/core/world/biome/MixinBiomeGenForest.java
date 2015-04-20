@@ -24,34 +24,29 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.Lists;
 import net.minecraft.block.BlockDoublePlant;
 import net.minecraft.world.biome.BiomeGenForest;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.mod.world.gen.populators.DoublePlantPopulator;
 import org.spongepowered.mod.world.gen.populators.RoofedForestPopulator;
 
 @Mixin(BiomeGenForest.class)
 public abstract class MixinBiomeGenForest extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(II)V", at = @At("RETURN"))
-    public void onConstructed(int id, int type, CallbackInfo ci) {
-        if (this.populators == null) {
-            this.populators = Lists.newArrayList();
-        }
-        this.populators.clear();
-        if (type == 3) {
+    @Shadow private int field_150632_aF;
+
+    @Override
+    protected void buildPopulators() {
+        if (this.field_150632_aF == 3) {
             this.populators.add(new RoofedForestPopulator());
         }
         int base = -3;
-        if (type == 1) {
+        if (this.field_150632_aF == 1) {
             base = -1;
         }
         this.populators.add(new DoublePlantPopulator(base, 5, 5, BlockDoublePlant.EnumPlantType.SYRINGA, BlockDoublePlant.EnumPlantType.ROSE,
                 BlockDoublePlant.EnumPlantType.PAEONIA));
-        super.buildPopulators(false);
+        super.buildPopulators();
     }
 }

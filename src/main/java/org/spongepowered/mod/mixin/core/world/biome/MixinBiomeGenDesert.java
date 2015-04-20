@@ -24,20 +24,16 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import org.spongepowered.mod.world.gen.populators.DesertWellPopulator;
-
 import net.minecraft.world.biome.BiomeGenDesert;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.mod.world.gen.populators.DesertWellPopulator;
 
 @Mixin(BiomeGenDesert.class)
 public abstract class MixinBiomeGenDesert extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(I)V", at = @At("RETURN"))
-    public void onConstructed(int id, CallbackInfo ci) {
-        super.buildPopulators(true);
+    @Override
+    protected void buildPopulators() {
+        super.buildPopulators();
         this.populators.add(new DesertWellPopulator(1000));
     }
 }

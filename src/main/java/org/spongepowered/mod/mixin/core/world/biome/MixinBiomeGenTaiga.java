@@ -24,29 +24,34 @@
  */
 package org.spongepowered.mod.mixin.core.world.biome;
 
-import com.google.common.collect.Lists;
+import org.spongepowered.api.util.VariableAmount;
+
 import net.minecraft.block.BlockDoublePlant;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.biome.BiomeGenTaiga;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.world.gen.populators.BlockBlob;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.populators.BlockBlobPopulator;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.mod.world.gen.populators.BlockBlobBuilder;
 import org.spongepowered.mod.world.gen.populators.DoublePlantPopulator;
 
 @Mixin(BiomeGenTaiga.class)
 public abstract class MixinBiomeGenTaiga extends MixinBiomeGenBase {
 
-    @Inject(method = "<init>(II)V", at = @At("RETURN"))
-    public void onConstructed(int id, int type, CallbackInfo ci) {
-        if (this.populators == null) {
-            populators = Lists.newArrayList();
-        }
-        if (type == 1 || type == 2) {
-            this.populators.add(new BlockBlobPopulator(Blocks.cobblestone.getDefaultState(), 3, 0));
+    @Shadow private int field_150644_aH; // type
+
+    @Override
+    protected void buildPopulators() {
+        if (this.field_150644_aH == 1 || this.field_150644_aH == 2) {
+            BlockBlob blob = new BlockBlobBuilder()
+                    .block((BlockState) Blocks.cobblestone.getDefaultState())
+                    .blockCount(VariableAmount.fixed(3))
+                    .radius(VariableAmount.baseAndVariance(-1, 1))
+                    .build();
+            this.populators.add(blob);
         }
         this.populators.add(new DoublePlantPopulator(7, 1, 1, BlockDoublePlant.EnumPlantType.FERN));
-        super.buildPopulators(false);
+        super.buildPopulators();
     }
 }

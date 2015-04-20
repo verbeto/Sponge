@@ -33,6 +33,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeDecorator;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.ChunkPrimer;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.util.VariableAmount;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import org.spongepowered.api.world.biome.BiomeType;
 import org.spongepowered.api.world.biome.GroundCoverLayer;
@@ -44,8 +46,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.mod.world.gen.DeferredGroundCoverLayer;
-import org.spongepowered.mod.world.gen.populators.BigMushroomPopulator;
 import org.spongepowered.mod.world.gen.populators.CactusPopulator;
 import org.spongepowered.mod.world.gen.populators.ClayPopulator;
 import org.spongepowered.mod.world.gen.populators.DeadBushPopulator;
@@ -136,30 +136,16 @@ public abstract class MixinBiomeGenBase implements BiomeType {
      * decoration with calls to these seeded lists.
      */
     @Inject(method = "<init>(IZ)V", at = @At("RETURN"))
-    public void onConstructed(int id, boolean register, CallbackInfo ci) {
-        populators = Lists.newArrayList();
-        genpopulators = Lists.newArrayList();
-        groundcover = Lists.newArrayList();
-        groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.topBlock, 0, 1));
-        groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.fillerBlock, 1));
+    private void onConstructed(int id, boolean register, CallbackInfo ci) {
+        this.populators = Lists.newArrayList();
+        this.genpopulators = Lists.newArrayList();
+        this.groundcover = Lists.newArrayList();
+        this.buildPopulators();
     }
 
-    protected void buildPopulators(boolean clear) {
-        if (this.populators == null) {
-            populators = Lists.newArrayList();
-        } else if (clear) {
-            this.populators.clear();
-        }
-        if (this.genpopulators == null) {
-            this.genpopulators = Lists.newArrayList();
-        } else if (clear) {
-            this.genpopulators.clear();
-        }
-        if (this.groundcover == null) {
-            this.groundcover = Lists.newArrayList();
-            groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.topBlock, 0, 1));
-            groundcover.add(new DeferredGroundCoverLayer((BiomeGenBase) (Object) this, this.fillerBlock, 1));
-        }
+    protected void buildPopulators() {
+        this.groundcover.add(new GroundCoverLayer((BlockState) this.topBlock, VariableAmount.fixed(1)));
+        this.groundcover.add(new GroundCoverLayer((BlockState) this.fillerBlock, VariableAmount.fixed(3)));
 
         this.populators.add(new OrePopulator.DirtPopulator());
         this.populators.add(new OrePopulator.GravelPopulator());
@@ -173,60 +159,47 @@ public abstract class MixinBiomeGenBase implements BiomeType {
         this.populators.add(new OrePopulator.DiamondPopulator());
         this.populators.add(new OrePopulator.LapisPopulator());
 
-        if(this.theBiomeDecorator.sandPerChunk2 > 0) {
+        if (this.theBiomeDecorator.sandPerChunk2 > 0) {
             this.populators.add(new SandPopulator(Blocks.sand, this.theBiomeDecorator.sandPerChunk2, 7));
         }
-        if(this.theBiomeDecorator.clayPerChunk > 0) {
+        if (this.theBiomeDecorator.clayPerChunk > 0) {
             this.populators.add(new ClayPopulator(this.theBiomeDecorator.clayPerChunk, 4));
         }
-        if(this.theBiomeDecorator.sandPerChunk > 0) {
+        if (this.theBiomeDecorator.sandPerChunk > 0) {
             this.populators.add(new SandPopulator(Blocks.gravel, this.theBiomeDecorator.sandPerChunk, 6));
         }
-        if(this.theBiomeDecorator.treesPerChunk > 0) {
+        if (this.theBiomeDecorator.treesPerChunk > 0) {
             this.populators.add(new TreePopulator(this.theBiomeDecorator.treesPerChunk));
         }
-        if(this.theBiomeDecorator.bigMushroomsPerChunk > 0) {
-            this.populators.add(new BigMushroomPopulator(this.theBiomeDecorator.bigMushroomsPerChunk));
+        if (this.theBiomeDecorator.bigMushroomsPerChunk > 0) {
+            //this.populators.add(new BigMushroomPopulator(this.theBiomeDecorator.bigMushroomsPerChunk));
         }
-        if(this.theBiomeDecorator.flowersPerChunk > 0) {
+        if (this.theBiomeDecorator.flowersPerChunk > 0) {
             this.populators.add(new FlowerPopulator(this.theBiomeDecorator.flowersPerChunk));
         }
-        if(this.theBiomeDecorator.grassPerChunk > 0) {
+        if (this.theBiomeDecorator.grassPerChunk > 0) {
             this.populators.add(new TallGrassPopulator(this.theBiomeDecorator.grassPerChunk));
         }
-        if(this.theBiomeDecorator.deadBushPerChunk > 0) {
+        if (this.theBiomeDecorator.deadBushPerChunk > 0) {
             this.populators.add(new DeadBushPopulator(this.theBiomeDecorator.deadBushPerChunk));
         }
-        if(this.theBiomeDecorator.waterlilyPerChunk > 0) {
+        if (this.theBiomeDecorator.waterlilyPerChunk > 0) {
             this.populators.add(new WaterLilyPopulator(this.theBiomeDecorator.waterlilyPerChunk));
         }
-        if(this.theBiomeDecorator.mushroomsPerChunk > 0) {
+        if (this.theBiomeDecorator.mushroomsPerChunk > 0) {
             this.populators.add(new SmallMushroomPopulator(this.theBiomeDecorator.mushroomsPerChunk));
         }
-        if(this.theBiomeDecorator.reedsPerChunk > 0) {
+        if (this.theBiomeDecorator.reedsPerChunk > 0) {
             this.populators.add(new ReedPopulator(this.theBiomeDecorator.reedsPerChunk));
         }
         this.populators.add(new PumpkinPopulator());
-        if(this.theBiomeDecorator.cactiPerChunk > 0) {
+        if (this.theBiomeDecorator.cactiPerChunk > 0) {
             this.populators.add(new CactusPopulator(this.theBiomeDecorator.cactiPerChunk));
         }
 
         if (this.theBiomeDecorator.generateLakes) {
             this.populators.add(new LiquidsPopulator());
         }
-    }
-
-    /**
-     * Calculate the depth of a layer based on the base and variance. In order
-     * to replicate vanilla functionality however we first check for a
-     * DeferredGroundCoverLayer and in this case we calculate the depth from the
-     * stoneNoise.
-     */
-    private int getDepth(GroundCoverLayer layer, Random rand, double stoneNoise) {
-        if (layer instanceof DeferredGroundCoverLayer) {
-            return ((DeferredGroundCoverLayer) layer).getDepth(rand, stoneNoise);
-        }
-        return (int) (layer.getBaseDepth() + rand.nextDouble() * layer.getDepthVariance());
     }
 
     /**
@@ -261,7 +234,7 @@ public abstract class MixinBiomeGenBase implements BiomeType {
                         i = 0;
                         GroundCoverLayer layer = this.groundcover.get(i);
                         currentPlacement = (IBlockState) layer.getState();
-                        k = getDepth(layer, rand, stoneNoise);
+                        k = layer.getDepth().getFlooredValue(rand, x, z);
                         if (k <= 0) {
                             continue;
                         }
@@ -271,7 +244,7 @@ public abstract class MixinBiomeGenBase implements BiomeType {
                             ++i;
                             if (i < this.groundcover.size()) {
                                 layer = this.groundcover.get(i);
-                                k = getDepth(layer, rand, stoneNoise);
+                                k = layer.getDepth().getFlooredValue(rand, x, z);
                                 currentPlacement = (IBlockState) layer.getState();
                             }
                         } else if (currentY < 56 - k) {
@@ -281,7 +254,7 @@ public abstract class MixinBiomeGenBase implements BiomeType {
                             ++i;
                             if (i < this.groundcover.size()) {
                                 layer = this.groundcover.get(i);
-                                k = getDepth(layer, rand, stoneNoise);
+                                k = layer.getDepth().getFlooredValue(rand, x, z);
                                 currentPlacement = (IBlockState) layer.getState();
                                 chunk.setBlockState(relativeZ, currentY, relativeX, currentPlacement);
                             }
@@ -294,7 +267,7 @@ public abstract class MixinBiomeGenBase implements BiomeType {
                             ++i;
                             if (i < this.groundcover.size()) {
                                 GroundCoverLayer layer = this.groundcover.get(i);
-                                k = getDepth(layer, rand, stoneNoise);
+                                k = layer.getDepth().getFlooredValue(rand, x, z);
                                 currentPlacement = (IBlockState) layer.getState();
                             }
                         }

@@ -42,17 +42,19 @@ import java.util.Random;
 
 public class TreePopulator extends SpongePopulator implements Forest {
     
-    private int count;
+    private int treesPerChunk;
+    private int variance;
+    private boolean biomeDependant;
     
     public TreePopulator(int count) {
-        this.count = count;
+        this.treesPerChunk = count;
     }
 
     @Override
     public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
         BiomeGenBase biomegenbase = currentWorld.getBiomeGenForCoords(pos.add(16, 0, 16));
         
-        int finalCount = this.count;
+        int finalCount = this.treesPerChunk;
         if(randomGenerator.nextInt(10) == 0) {
             finalCount++;
         }
@@ -77,26 +79,22 @@ public class TreePopulator extends SpongePopulator implements Forest {
 
     @Override
     public int getTreesPerChunk() {
-        // TODO Auto-generated method stub
-        return 0;
+        return this.treesPerChunk;
     }
 
     @Override
     public void setTreesPerChunk(int count) {
-        // TODO Auto-generated method stub
-        
+        this.treesPerChunk = count;
     }
 
     @Override
     public boolean isBiomeDependent() {
-        // TODO Auto-generated method stub
-        return false;
+        return this.biomeDependant;
     }
 
     @Override
     public void setBiomeDependent(boolean state) {
-        // TODO Auto-generated method stub
-        
+        this.biomeDependant = state;
     }
 
     @Override
@@ -133,6 +131,16 @@ public class TreePopulator extends SpongePopulator implements Forest {
     public void setType(BiomeTreeType type) {
         // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public int getCountVariance() {
+        return this.variance;
+    }
+
+    @Override
+    public void setCountVariance(int variance) {
+        this.variance = variance;
     }
 
 }

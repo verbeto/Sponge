@@ -61,7 +61,7 @@ public abstract class MixinChunkProviderEnd implements IChunkProvider {
      */
     @Overwrite
     public void func_180519_a(ChunkPrimer primer) {
-        ChunkProviderEvent.ReplaceBiomeBlocks event = new ChunkProviderEvent.ReplaceBiomeBlocks(this, chunkX, chunkZ, primer, this.endWorld);
+        ChunkProviderEvent.ReplaceBiomeBlocks event = new ChunkProviderEvent.ReplaceBiomeBlocks(this, this.chunkX, this.chunkZ, primer, this.endWorld);
         MinecraftForge.EVENT_BUS.post(event);
 
         // BEGIN removed code
@@ -124,11 +124,12 @@ public abstract class MixinChunkProviderEnd implements IChunkProvider {
      * We overwrite this chunk in order to replace the call to the end biome
      * decorator with a call to our biome populators for the correct chunk.
      */
+    @Override
     @Overwrite
     public void populate(IChunkProvider provider, int x, int z) {
         BlockFalling.fallInstantly = true;
 
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(provider, endWorld, endWorld.rand, x, z, false));
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(provider, this.endWorld, this.endWorld.rand, x, z, false));
 
         // BEGIN sponge code
         // Since we're not calling the biome decorate forge events here(to stay
@@ -155,7 +156,7 @@ public abstract class MixinChunkProviderEnd implements IChunkProvider {
 
         // BEGIN END code
 
-        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(provider, endWorld, endWorld.rand, x, z, false));
+        MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(provider, this.endWorld, this.endWorld.rand, x, z, false));
 
         BlockFalling.fallInstantly = false;
     }

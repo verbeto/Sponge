@@ -45,7 +45,7 @@ public class DesertWellPopulator extends SpongePopulator implements DesertWell {
 
     @Override
     public void populate(World currentWorld, Chunk chunk, Random randomGenerator, BlockPos pos) {
-        if (randomGenerator.nextInt(chance) == 0) {
+        if (randomGenerator.nextInt(this.chance) == 0) {
             int i = randomGenerator.nextInt(16) + 8;
             int j = randomGenerator.nextInt(16) + 8;
             BlockPos blockpos1 = currentWorld.getHeight(pos.add(i, 0, j)).up();
