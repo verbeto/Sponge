@@ -24,18 +24,68 @@
  */
 package org.spongepowered.mod.mixin.core.world;
 
-import net.minecraft.world.World;
+import com.google.common.collect.ImmutableList;
+import net.minecraft.profiler.Profiler;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.biome.WorldChunkManager;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.relauncher.Side;
+import org.spongepowered.api.service.permission.context.Context;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
+import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.gen.GeneratorPopulator;
+import org.spongepowered.api.world.gen.Populator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.common.configuration.SpongeConfig;
+import org.spongepowered.common.interfaces.IMixinWorld;
+import org.spongepowered.common.world.border.PlayerBorderListener;
+import org.spongepowered.mod.SpongeMod;
 
-@Mixin(value = World.class, priority = 1001)
-public abstract class MixinWorld {
-    @Shadow public WorldInfo worldInfo;
-    private long weatherStartTime;
+import java.io.File;
+
+
+@NonnullByDefault
+@Mixin(net.minecraft.world.World.class)
+public abstract class MixinWorld implements World, IMixinWorld {
+
+    private boolean keepSpawnLoaded;
+    public SpongeConfig<SpongeConfig.WorldConfig> worldConfig;
+    private volatile Context worldContext;
+    private ImmutableList<Populator> populators;
+    private ImmutableList<GeneratorPopulator> generatorPopulators;
+    long weatherStartTime;
+
+    @Shadow public WorldProvider provider;
+    @Shadow protected WorldInfo worldInfo;
+    @Shadow private net.minecraft.world.border.WorldBorder worldBorder;
+
+    @Shadow public abstract IChunkProvider getChunkProvider();
+    @Shadow public abstract WorldChunkManager getWorldChunkManager();
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    public void onConstructed(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client,
+            CallbackInfo ci) {
+        if (!client) {
+            String providerName = providerIn.getDimensionName().toLowerCase().replace(" ", "_").replace("[^A-Za-z0-9_]", "");
+            this.worldConfig =
+                    new SpongeConfig<SpongeConfig.WorldConfig>(SpongeConfig.Type.WORLD, new File(SpongeMod.instance.getConfigDir()
+                            + File.separator + providerName
+                            + File.separator + (providerIn.getDimensionId() == 0 ? "dim0" : providerIn.getSaveFolder().toLowerCase()), "world.conf"),
+                            "sponge");
+        }
+
+        if (FMLCommonHandler.instance().getSide() == Side.SERVER) {
+            this.worldBorder.addListener(new PlayerBorderListener());
+        }
+        
+    }
 
     @Inject(method = "updateWeatherBody()V", remap = false, at = {
             @At(value = "INVOKE", target = "Lnet/minecraft/world/storage/WorldInfo;setThundering(Z)V"),
@@ -48,4 +98,5 @@ public abstract class MixinWorld {
     public long getRunningDuration() {
         return this.worldInfo.getWorldTotalTime() - this.weatherStartTime;
     }
+
 }
